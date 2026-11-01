@@ -14,3 +14,4 @@ database/lidmap.json
 
 .env
 *.log
+package-lock.json
