@@ -19,12 +19,17 @@ apt update
 apt install -y curl build-essential python3 git sqlite3 ca-certificates
 
 echo "[2/7] Swap 2GB (jika belum ada)"
-if ! swapon --show | grep -q '/swapfile'; then
-  fallocate -l 2G /swapfile
-  chmod 600 /swapfile
-  mkswap /swapfile
-  swapon /swapfile
-  grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+if ! swapon --show 2>/dev/null | grep -q '/swapfile'; then
+  if fallocate -l 2G /swapfile 2>/dev/null \
+    && chmod 600 /swapfile \
+    && mkswap /swapfile >/dev/null 2>&1 \
+    && swapon /swapfile 2>/dev/null; then
+    grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    echo "   swap aktif"
+  else
+    rm -f /swapfile
+    echo "   swap tidak diizinkan (container/LXC) - dilewati"
+  fi
 fi
 
 echo "[3/7] Node.js ${NODE_MAJOR} LTS"
