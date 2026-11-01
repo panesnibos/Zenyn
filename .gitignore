@@ -5,9 +5,6 @@ ex/
 
 .bot.lock
 
-database/rpg/*.db
-database/rpg/*.db-wal
-database/rpg/*.db-shm
 database/rpg/users.json
 
 database/lidmap.json
