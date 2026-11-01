@@ -1,0 +1,173 @@
+{
+  "wooden-sword": {
+    "name": "Wooden Sword",
+    "emoji": "🗡️",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Common",
+    "atk": 6
+  },
+  "iron-sword": {
+    "name": "Iron Sword",
+    "emoji": "⚔️",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Uncommon",
+    "atk": 14
+  },
+  "steel-sword": {
+    "name": "Steel Sword",
+    "emoji": "🗡️",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Rare",
+    "atk": 24
+  },
+  "leather-armor": {
+    "name": "Leather Armor",
+    "emoji": "🥋",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Common",
+    "def": 5
+  },
+  "chain-armor": {
+    "name": "Chain Armor",
+    "emoji": "🛡️",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Uncommon",
+    "def": 10
+  },
+  "knight-armor": {
+    "name": "Knight Armor",
+    "emoji": "🛡️",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Rare",
+    "def": 18
+  },
+  "power-ring": {
+    "name": "Power Ring",
+    "emoji": "💍",
+    "type": "equipment",
+    "slot": "accessory",
+    "rarity": "Uncommon",
+    "atk": 5
+  },
+  "life-amulet": {
+    "name": "Life Amulet",
+    "emoji": "📿",
+    "type": "equipment",
+    "slot": "accessory",
+    "rarity": "Rare",
+    "hp": 35
+  },
+  "lucky-charm": {
+    "name": "Lucky Charm",
+    "emoji": "🍀",
+    "type": "equipment",
+    "slot": "accessory",
+    "rarity": "Epic",
+    "atk": 4,
+    "def": 4,
+    "goldBonus": 0.1
+  },
+  "stone-sword": {
+    "name": "Stone Sword",
+    "emoji": "🪨",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Common",
+    "atk": 10
+  },
+  "iron-ring": {
+    "name": "Iron Ring",
+    "emoji": "💍",
+    "type": "equipment",
+    "slot": "accessory",
+    "rarity": "Common",
+    "atk": 3
+  },
+  "stone-armor": {
+    "name": "Stone Armor",
+    "emoji": "🪨",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Common",
+    "def": 8
+  },
+  "mithril-sword": {
+    "name": "Mithril Sword",
+    "emoji": "🗡️",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Epic",
+    "atk": 40
+  },
+  "mithril-armor": {
+    "name": "Mithril Armor",
+    "emoji": "🛡️",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Epic",
+    "def": 30
+  },
+  "dragon-sword": {
+    "name": "Dragon Sword",
+    "emoji": "🐉",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Legendary",
+    "atk": 65
+  },
+  "dragon-armor": {
+    "name": "Dragon Armor",
+    "emoji": "🐲",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Legendary",
+    "def": 48
+  },
+  "dragon-amulet": {
+    "name": "Dragon Amulet",
+    "emoji": "🔥",
+    "type": "equipment",
+    "slot": "accessory",
+    "rarity": "Legendary",
+    "atk": 10,
+    "def": 10,
+    "hp": 60,
+    "goldBonus": 0.25
+  },
+  "herb": {
+    "name": "Herb",
+    "emoji": "🌿",
+    "type": "material"
+  },
+  "ore": {
+    "name": "Ore",
+    "emoji": "🪨",
+    "type": "material"
+  },
+  "wood": {
+    "name": "Wood",
+    "emoji": "🪵",
+    "type": "material"
+  },
+  "fish": {
+    "name": "Fish",
+    "emoji": "🐟",
+    "type": "material"
+  },
+  "stone": {
+    "name": "Stone",
+    "emoji": "🧱",
+    "type": "material"
+  },
+  "iron": {
+    "name": "Iron Ingot",
+    "emoji": "🔩",
+    "type": "material"
+  }
+}

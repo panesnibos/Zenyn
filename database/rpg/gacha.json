@@ -1,0 +1,20 @@
+{
+  "bronze-key": {
+    "name": "bronze-key",
+    "emoji": "🗝️",
+    "rewards": [
+      { "type": "gold", "min": 500, "max": 1200 },
+      { "name": "Potion", "emoji": "🧪", "qty": 1, "chance": 0.8 },
+      { "name": "Bronze-key", "emoji": "🗝️", "qty": 1, "chance": 0.3 }
+    ]
+  },
+  "premium-key": {
+    "name": "premium-key",
+    "emoji": "🔑",
+    "rewards": [
+      { "type": "gold", "min": 2000, "max": 5000 },
+      { "name": "Elixir", "emoji": "🧃", "qty": 2, "chance": 0.7 },
+      { "name": "Diamond", "emoji": "💎", "qty": 1, "chance": 0.2 }
+    ]
+  }
+}

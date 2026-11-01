@@ -1,0 +1,191 @@
+{
+  "potion": {
+    "name": "Potion",
+    "emoji": "🧪",
+    "price": 200,
+    "sell": 100,
+    "buyable": true
+  },
+  "elixir": {
+    "name": "Elixir",
+    "emoji": "🧴",
+    "price": 500,
+    "sell": 250,
+    "buyable": true
+  },
+  "bronze-key": {
+    "name": "Bronze-key",
+    "emoji": "🔑",
+    "price": 630,
+    "sell": 169,
+    "buyable": true
+  },
+  "premium-key": {
+    "name": "premium-key",
+    "emoji": "🗝️",
+    "price": 2500,
+    "sell": 1000,
+    "buyable": true
+  },
+  "diamond": {
+    "name": "Diamond",
+    "emoji": "💎",
+    "sell": 1300,
+    "buyable": false
+  },
+  "wooden-sword": {
+    "name": "Wooden Sword",
+    "emoji": "🗡️",
+    "price": 600,
+    "sell": 240,
+    "buyable": true
+  },
+  "iron-sword": {
+    "name": "Iron Sword",
+    "emoji": "⚔️",
+    "price": 1800,
+    "sell": 720,
+    "buyable": true
+  },
+  "steel-sword": {
+    "name": "Steel Sword",
+    "emoji": "🗡️",
+    "price": 5000,
+    "sell": 2000,
+    "buyable": true
+  },
+  "leather-armor": {
+    "name": "Leather Armor",
+    "emoji": "🥋",
+    "price": 600,
+    "sell": 240,
+    "buyable": true
+  },
+  "chain-armor": {
+    "name": "Chain Armor",
+    "emoji": "🛡️",
+    "price": 1800,
+    "sell": 720,
+    "buyable": true
+  },
+  "knight-armor": {
+    "name": "Knight Armor",
+    "emoji": "🛡️",
+    "price": 5000,
+    "sell": 2000,
+    "buyable": true
+  },
+  "power-ring": {
+    "name": "Power Ring",
+    "emoji": "💍",
+    "price": 1500,
+    "sell": 600,
+    "buyable": true
+  },
+  "life-amulet": {
+    "name": "Life Amulet",
+    "emoji": "📿",
+    "price": 4000,
+    "sell": 1600,
+    "buyable": true
+  },
+  "lucky-charm": {
+    "name": "Lucky Charm",
+    "emoji": "🍀",
+    "price": 8000,
+    "sell": 3200,
+    "buyable": true
+  },
+  "stone-sword": {
+    "name": "Stone Sword",
+    "emoji": "🪨",
+    "price": 1000,
+    "sell": 400,
+    "buyable": true
+  },
+  "stone-armor": {
+    "name": "Stone Armor",
+    "emoji": "🪨",
+    "price": 1000,
+    "sell": 400,
+    "buyable": true
+  },
+  "iron-ring": {
+    "name": "Iron Ring",
+    "emoji": "💍",
+    "price": 900,
+    "sell": 360,
+    "buyable": true
+  },
+  "mithril-sword": {
+    "name": "Mithril Sword",
+    "emoji": "🗡️",
+    "price": 14000,
+    "sell": 5600,
+    "buyable": true
+  },
+  "mithril-armor": {
+    "name": "Mithril Armor",
+    "emoji": "🛡️",
+    "price": 14000,
+    "sell": 5600,
+    "buyable": true
+  },
+  "dragon-sword": {
+    "name": "Dragon Sword",
+    "emoji": "🐉",
+    "price": 30000,
+    "sell": 12000,
+    "buyable": false
+  },
+  "dragon-armor": {
+    "name": "Dragon Armor",
+    "emoji": "🐲",
+    "price": 30000,
+    "sell": 12000,
+    "buyable": false
+  },
+  "dragon-amulet": {
+    "name": "Dragon Amulet",
+    "emoji": "🔥",
+    "price": 26000,
+    "sell": 10400,
+    "buyable": false
+  },
+  "herb": {
+    "name": "Herb",
+    "emoji": "🌿",
+    "sell": 15,
+    "buyable": false
+  },
+  "ore": {
+    "name": "Ore",
+    "emoji": "🪨",
+    "sell": 25,
+    "buyable": false
+  },
+  "wood": {
+    "name": "Wood",
+    "emoji": "🪵",
+    "sell": 20,
+    "buyable": false
+  },
+  "fish": {
+    "name": "Fish",
+    "emoji": "🐟",
+    "sell": 18,
+    "buyable": false
+  },
+  "stone": {
+    "name": "Stone",
+    "emoji": "🧱",
+    "sell": 22,
+    "buyable": false
+  },
+  "iron": {
+    "name": "Iron Ingot",
+    "emoji": "🔩",
+    "sell": 60,
+    "buyable": false
+  }
+}

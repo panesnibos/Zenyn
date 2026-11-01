@@ -1,0 +1,52 @@
+{
+  "slime": {
+    "name": "Slime",
+    "emoji": "🟢",
+    "level": 1,
+    "hp": 30,
+    "atk": 7,
+    "def": 2,
+    "exp": 20,
+    "gold": 18
+  },
+  "goblin": {
+    "name": "Goblin",
+    "emoji": "👺",
+    "level": 2,
+    "hp": 45,
+    "atk": 10,
+    "def": 3,
+    "exp": 35,
+    "gold": 27
+  },
+  "wolf": {
+    "name": "Wolf",
+    "emoji": "🐺",
+    "level": 3,
+    "hp": 60,
+    "atk": 15,
+    "def": 4,
+    "exp": 45,
+    "gold": 35
+  },
+  "skeleton": {
+    "name": "Skeleton",
+    "emoji": "💀",
+    "level": 4,
+    "hp": 80,
+    "atk": 17,
+    "def": 5,
+    "exp": 60,
+    "gold": 50
+  },
+  "orc": {
+    "name": "Orc",
+    "emoji": "👹",
+    "level": 5,
+    "hp": 134,
+    "atk": 24,
+    "def": 6,
+    "exp": 80,
+    "gold": 72
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "potion": {
+    "name": "potion",
+    "emoji": "🧪",
+    "effect": 100,
+    "type": "heal"
+  },
+  "elixir": {
+    "name": "elixir",
+    "emoji": "🧃",
+    "effect": 250,
+    "type": "heal"
+  }
+}

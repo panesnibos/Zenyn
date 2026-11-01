@@ -1,0 +1,100 @@
+{
+  "potion": {
+    "name": "Potion",
+    "emoji": "🧪",
+    "cost": 100,
+    "qty": 1,
+    "materials": { "Herb": 2 }
+  },
+  "elixir": {
+    "name": "Elixir",
+    "emoji": "🧴",
+    "cost": 250,
+    "qty": 1,
+    "materials": { "Herb": 3, "Ore": 1 }
+  },
+  "iron-sword": {
+    "name": "Iron Sword",
+    "emoji": "⚔️",
+    "cost": 500,
+    "qty": 1,
+    "materials": { "Ore": 5, "Wood": 2 }
+  },
+  "chain-armor": {
+    "name": "Chain Armor",
+    "emoji": "🛡️",
+    "cost": 500,
+    "qty": 1,
+    "materials": { "Ore": 6, "Wood": 1 }
+  },
+  "life-amulet": {
+    "name": "Life Amulet",
+    "emoji": "📿",
+    "cost": 800,
+    "qty": 1,
+    "materials": { "Herb": 4, "Ore": 4 }
+  },
+  "lucky-charm": {
+    "name": "Lucky Charm",
+    "emoji": "🍀",
+    "cost": 1500,
+    "qty": 1,
+    "materials": { "Herb": 6, "Ore": 6, "Wood": 6 }
+  },
+  "stone-sword": {
+    "name": "Stone Sword",
+    "emoji": "🪨",
+    "cost": 200,
+    "qty": 1,
+    "materials": { "Stone": 4, "Wood": 2 }
+  },
+  "stone-armor": {
+    "name": "Stone Armor",
+    "emoji": "🪨",
+    "cost": 200,
+    "qty": 1,
+    "materials": { "Stone": 5, "Wood": 1 }
+  },
+  "iron-ring": {
+    "name": "Iron Ring",
+    "emoji": "💍",
+    "cost": 250,
+    "qty": 1,
+    "materials": { "Iron": 2, "Stone": 2 }
+  },
+  "mithril-sword": {
+    "name": "Mithril Sword",
+    "emoji": "🗡️",
+    "cost": 3000,
+    "qty": 1,
+    "materials": { "Iron": 10, "Ore": 8, "Stone": 5 }
+  },
+  "mithril-armor": {
+    "name": "Mithril Armor",
+    "emoji": "🛡️",
+    "cost": 3000,
+    "qty": 1,
+    "materials": { "Iron": 12, "Ore": 6, "Stone": 6 }
+  },
+  "dragon-sword": {
+    "name": "Dragon Sword",
+    "emoji": "🐉",
+    "cost": 8000,
+    "qty": 1,
+    "materials": { "Iron": 20, "Ore": 15, "Stone": 10, "Diamond": 3 }
+  },
+  "dragon-armor": {
+    "name": "Dragon Armor",
+    "emoji": "🐲",
+    "cost": 8000,
+    "qty": 1,
+    "materials": { "Iron": 22, "Ore": 12, "Stone": 12, "Diamond": 3 }
+  },
+  "dragon-amulet": {
+    "name": "Dragon Amulet",
+    "emoji": "🔥",
+    "cost": 6000,
+    "qty": 1,
+    "materials": { "Iron": 10, "Diamond": 2, "Herb": 8 }
+  }
+}

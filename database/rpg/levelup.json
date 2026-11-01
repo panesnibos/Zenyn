@@ -1,0 +1,29 @@
+[
+  {
+    "min": 1,
+    "max": 5,
+    "gold": 1000,
+    "items": [
+      { "name": "Bronze-key", "emoji": "🔑", "qty": 1 },
+      { "name": "Potion", "emoji": "🧪", "qty": 1 }
+    ]
+  },
+  {
+    "min": 6,
+    "max": 10,
+    "gold": 1200,
+    "items": [
+      { "name": "Potion", "emoji": "🧪", "qty": 1 },
+      { "name": "Bronze-key", "emoji": "🔑", "qty": 2 }
+    ]
+  },
+  {
+    "min": 11,
+    "max": 15,
+    "gold": 2500,
+    "items": [
+      { "name": "Elixir", "emoji": "🧃", "qty": 1 },
+      { "name": "Bronze-key", "emoji": "🔑", "qty": 2 }
+    ]
+  }
+]
