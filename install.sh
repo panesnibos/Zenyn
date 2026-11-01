@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -euo pipefail
 
 REPO_URL="${1:-}"
@@ -14,32 +14,18 @@ if [[ -z "$REPO_URL" ]]; then
   exit 1
 fi
 
-echo "[1/7] Paket sistem"
+echo "[1/6] Paket sistem"
 apt update
 apt install -y curl build-essential python3 git sqlite3 ca-certificates
 
-echo "[2/7] Swap 2GB (jika belum ada)"
-if ! swapon --show 2>/dev/null | grep -q '/swapfile'; then
-  if fallocate -l 2G /swapfile 2>/dev/null \
-    && chmod 600 /swapfile \
-    && mkswap /swapfile >/dev/null 2>&1 \
-    && swapon /swapfile 2>/dev/null; then
-    grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
-    echo "   swap aktif"
-  else
-    rm -f /swapfile
-    echo "   swap tidak diizinkan (container/LXC) - dilewati"
-  fi
-fi
-
-echo "[3/7] Node.js ${NODE_MAJOR} LTS"
+echo "[2/6] Node.js ${NODE_MAJOR} LTS"
 if ! command -v node >/dev/null || [[ "$(node -v | cut -d. -f1 | tr -d v)" -lt 18 ]]; then
   curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash -
   apt install -y nodejs
 fi
 node -v
 
-echo "[4/7] Clone / update repo"
+echo "[3/6] Clone / update repo"
 if [[ -d "$APP_DIR/.git" ]]; then
   git -C "$APP_DIR" pull --ff-only
 else
@@ -47,17 +33,17 @@ else
 fi
 cd "$APP_DIR"
 
-echo "[5/7] npm install"
+echo "[4/6] npm install"
 npm install
 npm cache clean --force
 
-echo "[6/7] pm2 (bot belum start - pairing manual dulu)"
+echo "[5/6] pm2 (bot belum start - pairing manual dulu)"
 npm i -g pm2
 if pm2 describe zenyn >/dev/null 2>&1; then
   pm2 stop zenyn || true
 fi
 
-echo "[7/7] Cron backup harian"
+echo "[6/6] Cron backup harian"
 mkdir -p /root/backup
 CRON_LINE="0 3 * * * sqlite3 ${APP_DIR}/database/rpg/zenyn.db \".backup '/root/backup/zenyn-\$(date +\\%F).db'\""
 ( crontab -l 2>/dev/null | grep -v 'zenyn-.*\.db' ; echo "$CRON_LINE" ) | crontab -
