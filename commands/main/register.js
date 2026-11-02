@@ -92,7 +92,7 @@ const execute = async (client, message, args, commands, commandName) => {
       logger.cmd(`register ${uid} -> ${data.name} (${ageGroup})`);
 
       return await client.sendMessage(sender, {
-        text: `✅ *REGISTER BERHASIL*\n\n┃ Nama: *${data.name}*\n┃ Umur: *${ageGroup}*\n┃ Status: User\n\nSelamat bermain! Ketik *${p}menu* untuk melihat fitur.`
+        text: `✅ *REGISTER BERHASIL*\n\n┃ Nama: *${data.name}*\n┃ Umur: *${ageGroup}*\n┃ Status: User\n\nSelamat bermain! Ketik *${p}menu* untuk melihat fitur.\n\nhttps://chat.whatsapp.com/JjtVVD53f1HJ77gNrfMQHb`
       }, { quoted: message });
     }
 
