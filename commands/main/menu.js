@@ -6,6 +6,65 @@ const { db } = require("../../lib/rpgdb");
 const { getUserId } = require("../../lib/rpgutil");
 const { statusOf, formatLimit } = require("../../lib/rpglimit");
 
+const RISKY = new Set([
+  "additem", "addlevel", "addlimit", "addmoney", "botstats",
+  "resetuser", "setstatus", "owner"
+]);
+
+const riskOf = (cmd) => {
+  if (cmd.group === true || cmd.category === "rpg") return " 👥";
+  if (RISKY.has(cmd.name)) return " 🔒";
+  return "";
+};
+
+const buildMenuText = (p, categories, commands, user) => {
+  const lines = [];
+
+  lines.push("╭━━━〔 *ZENYN MENU* 〕━━━⬣");
+  lines.push(`┃ ✦ Name   : ${user.name}`);
+  lines.push(`┃ ✦ Limit  : ${formatLimit(user)}`);
+  lines.push(`┃ ✦ Status : ${statusOf(user)}`);
+  lines.push(`┃ ✦ Prefix : ${p}`);
+  lines.push("╰━━━━━━━━━━━━━━━━⬣");
+  lines.push("");
+
+  const INTERNAL = new Set(["confirmbuy", "confirmsell"]);
+
+  for (const [category, cmds] of Object.entries(categories)) {
+    if (!cmds.length) continue;
+
+    const uniqueCmds = new Map();
+    cmds.forEach((cmd) => {
+      const displayName = cmd.name || (Array.isArray(cmd.command) ? cmd.command[0] : cmd.command);
+      if (typeof displayName === "string" && !displayName.includes("_") && !INTERNAL.has(displayName)) {
+        uniqueCmds.set(displayName, cmd);
+      }
+    });
+
+    if (!uniqueCmds.size) continue;
+
+    lines.push(`│╭─▣「 *${category.toUpperCase()} MENU* 」▣─╮`);
+    Array.from(uniqueCmds.keys())
+      .sort()
+      .forEach((name) => {
+        const cmd = uniqueCmds.get(name);
+        lines.push(`││ ⟿ ${p}${name}${riskOf(cmd)}`);
+      });
+    lines.push("│╰─➤");
+    lines.push("│");
+  }
+
+  lines.push(`│╭==⊱ *Zenyn Bot* ▣─╮`);
+  lines.push(`││ ✦ Total Commands : ${Object.keys(commands).length}`);
+  lines.push(`││ ✦ Kategori       : ${Object.keys(categories).length}`);
+  lines.push("│╰───➤");
+  lines.push("╰─────┈➤");
+  lines.push("");
+  lines.push("👥 wajib grup • 🔒 khusus owner");
+
+  return lines.join("\n");
+};
+
 const execute = async (client, message, args, commands) => {
   const sender = message.key.remoteJid;
 
@@ -13,66 +72,41 @@ const execute = async (client, message, args, commands) => {
   const includeHidden = isOwner(message);
   const categories = getCommandsByCategory(commands, { includeHidden });
 
-  const userId = getUserId(message);
-  const user = userId ? db.getUser(userId, message.pushName || "Player") : null;
-  const name = user?.name || message.pushName || "Player";
-  const limit = user ? formatLimit(user) : "0/20";
-  const status = isOwner(message) ? "Owner" : (user ? statusOf(user) : "User");
+  const uid = getUserId(message);
+  const user = uid ? db.getUser(uid, message.pushName || "Player") : { name: message.pushName || "Player" };
 
-  let menuText = `╭━━━〔 Menu 〕━━━⬣
-┃ ✦ Name: ${name}
-┃ ✦ Limit: ${limit} 
-┃ ✦ Status: ${status}
-╰━━━━━━━━━━━━━━━━⬣
+  const menuText = buildMenuText(p, categories, commands, user);
 
-╭─────────────────────➤
-`;
-
-  const INTERNAL = new Set(["confirmbuy", "confirmsell"]);
-
-  for (const [category, cmds] of Object.entries(categories)) {
-    if (!cmds.length) continue;
-    const catName = category.toUpperCase();
-    menuText += `│╭─▣「 *${catName} MENU* 」▣─╮\n`;
-    
-    const uniqueCmds = new Set();
-    cmds.forEach(cmd => {
-      const displayName = cmd.name || (Array.isArray(cmd.command) ? cmd.command[0] : cmd.command);
-      if (typeof displayName === 'string' && !displayName.includes('_') && !INTERNAL.has(displayName)) {
-        uniqueCmds.add(displayName);
-      }
-    });
-    
-    Array.from(uniqueCmds)
-      .sort()
-      .forEach(cmd => {
-        menuText += `││ ⟿ ${p}${cmd}\n`;
-      });
-    
-    menuText += `│╰─➤\n│\n`;
-  }
-
-  menuText += `│╭==⊱ *Zenyn Bot* ▣─╮
-││↻ Simple & Fast RPG Bot
-│╰───➤
-╰─────┈➤
-`;
-
-  const rows = [
+  const sections = [
     {
-      title: "🏓 Ping Test 1",
-      description: "Test ping response",
-      id: "ping_1"
+      title: "🎮 Bermain",
+      rows: [
+        {
+          title: "🎮 RPG Menu",
+          description: "Battle, dungeon, shop, pet & lainnya",
+          id: "rpg"
+        }
+      ]
     },
     {
-      title: "🏓 Ping Test 2",
-      description: "Test ping response",
-      id: "ping_2"
+      title: "🔧 Utilitas",
+      rows: [
+        {
+          title: "🏓 Ping",
+          description: "Cek latency & kecepatan bot",
+          id: "ping"
+        }
+      ]
     },
     {
-      title: "🏓 Ping Test 3",
-      description: "Test ping response",
-      id: "ping_3"
+      title: "👤 Bantuan",
+      rows: [
+        {
+          title: "📞 Owner / CS",
+          description: "Hubungi owner atau customer service",
+          id: "owner"
+        }
+      ]
     }
   ];
 
@@ -80,13 +114,8 @@ const execute = async (client, message, args, commands) => {
     {
       name: "single_select",
       buttonParamsJson: JSON.stringify({
-        title: "Pilih Opsi",
-        sections: [
-          {
-            title: "Ping Tests",
-            rows: rows
-          }
-        ]
+        title: "Buka Menu",
+        sections
       })
     }
   ];
@@ -101,7 +130,9 @@ const execute = async (client, message, args, commands) => {
     await client.sendInteractiveMessage(sender, messageConfig, { quoted: message });
   } catch (err) {
     logger.error("Error sending menu:", err);
-    await client.sendMessage(sender, { text: "❌ Error menampilkan menu" }, { quoted: message });
+    await client.sendMessage(sender, { text: menuText }).catch(async () => {
+      await client.sendMessage(sender, { text: "❌ Error menampilkan menu" }, { quoted: message });
+    });
   }
 };
 
