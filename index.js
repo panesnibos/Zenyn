@@ -179,7 +179,7 @@ async function connectBot() {
 
             if (needsGroup && !isGroup) {
               await client.sendMessage(sender, {
-                text: "❌ Fitur ini hanya bisa dipakai di grup"
+                text: "❌ Fitur ini hanya bisa dipakai di grup \nhttps://chat.whatsapp.com/JjtVVD53f1HJ77gNrfMQHb"
               }, { quoted: message });
               return true;
             }
@@ -218,9 +218,13 @@ async function connectBot() {
             }
 
             let success = true;
+            let finalCost = pending ? pending.cost : 0;
             try {
               const result = await cmd.execute(client, message, args, commands, command.toLowerCase());
               if (result === false) success = false;
+              else if (result && typeof result === "object" && result.limitCost !== undefined) {
+                finalCost = commandCost(cmd, result.limitCost);
+              }
             } catch (err) {
               success = false;
               logger.error(`command ${command}: ${err.message}`);
@@ -228,10 +232,13 @@ async function connectBot() {
             }
 
             if (success && pending) {
-              const remaining = db.addLimit(pending.uid, -pending.cost);
-              await client.sendMessage(sender, {
-                text: `🎟️ *Limit terpakai:* -${pending.cost}\nSisa limit: *${remaining ?? Math.max(0, pending.limitMax - pending.cost)}/${pending.limitMax}*`
-              }, { quoted: message }).catch(() => {});
+              const current = db.getUser(pending.uid, message.pushName || "Player");
+              const chargedCost = Math.min(finalCost, Math.max(0, current.limit ?? 0));
+              const remaining = chargedCost > 0 ? db.addLimit(pending.uid, -chargedCost) : current.limit ?? 0;
+              const note = chargedCost < finalCost
+                ? `🎟️ *Limit terpakai:* -${chargedCost} (butuh ${finalCost})\nSisa limit: *${remaining ?? 0}/${pending.limitMax}*`
+                : `🎟️ *Limit terpakai:* -${chargedCost}\nSisa limit: *${remaining ?? 0}/${pending.limitMax}*`;
+              await client.sendMessage(sender, { text: note }, { quoted: message }).catch(() => {});
             }
 
             return true;
