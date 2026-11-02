@@ -6,6 +6,7 @@ module.exports = {
   phoneNumber: "+6285870956410",
   owners: ["62895327668200", "6285894217616"],
   ownerContact: "62895327668200",
-  aiModel: "gemini-2.0-flash",
-  aiApiUrl: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+  aiModel: "gemini-3.5-flash",
+  aiFallbackModels: ["gemini-3-flash-preview", "gemini-3.8-flash"],
+  aiApiBase: "https://generativelanguage.googleapis.com/v1beta/models"
 };
