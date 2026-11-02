@@ -8,7 +8,7 @@ const { statusOf, formatLimit } = require("../../lib/rpglimit");
 
 const RISKY = new Set([
   "additem", "addlevel", "addlimit", "addmoney", "botstats",
-  "resetuser", "setstatus", "owner"
+  "resetuser", "setstatus"
 ]);
 
 const riskOf = (cmd) => {
