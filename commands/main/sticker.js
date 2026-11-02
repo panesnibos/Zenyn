@@ -2,6 +2,7 @@ const logger = require("../../lib/logger");
 const { downloadMediaMessage } = require("@whiskeysockets/baileys");
 const sharp = require("sharp");
 const pino = require("pino");
+const { withExif } = require("../../lib/sticker");
 
 const execute = async (client, message, args, commands) => {
   const sender = message.key.remoteJid;
@@ -54,7 +55,7 @@ const execute = async (client, message, args, commands) => {
         .toBuffer();
     }
 
-    await client.sendMessage(sender, { sticker: stickerBuffer }, { quoted: message });
+    await client.sendMessage(sender, { sticker: withExif(stickerBuffer) }, { quoted: message });
     logger.info(`✅ Sticker created for ${sender}`);
 
   } catch (err) {
