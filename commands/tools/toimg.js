@@ -7,7 +7,8 @@ const execute = async (client, message, args, commands) => {
   const sender = message.key.remoteJid;
 
   try {
-    const quoted = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+    const contextInfo = message.message?.extendedTextMessage?.contextInfo;
+    const quoted = contextInfo?.quotedMessage;
     const target = quoted?.stickerMessage || message.message?.stickerMessage;
 
     if (!target) {
@@ -20,22 +21,35 @@ const execute = async (client, message, args, commands) => {
 
     await client.sendMessage(sender, { text: "⏳ Converting sticker..." }, { quoted: message });
 
-    const buffer = await downloadMediaMessage(
-      { key: message.key, message: quoted ? { stickerMessage: target } : message.message },
-      "buffer",
-      {},
-      {
-        logger: pino({ level: "silent" }),
-        reuploadRequest: client.updateMediaMessage
-      }
-    );
+    const targetMsg = quoted
+      ? {
+          key: { ...message.key, id: contextInfo.stanzaId, participant: contextInfo.participant },
+          message: quoted
+        }
+      : message;
 
-    if (target.isAnimated) {
-      const png = await sharp(buffer, { animated: true }).png().toBuffer();
-      await client.sendMessage(sender, { image: png }, { quoted: message });
+    const buffer = await downloadMediaMessage(targetMsg, "buffer", {}, {
+      logger: pino({ level: "silent" }),
+      reuploadRequest: client.updateMediaMessage
+    });
+
+    const meta = await sharp(buffer, { animated: true }).metadata();
+    const isAnimated = target.isAnimated || (meta.pages || 1) > 1;
+
+    if (isAnimated) {
+      const gif = await sharp(buffer, { animated: true }).gif().toBuffer();
+      await client.sendMessage(
+        sender,
+        { video: gif, mimetype: "video/gif", gifPlayback: true, caption: "✅ Sticker to image" },
+        { quoted: message }
+      );
     } else {
       const png = await sharp(buffer).png().toBuffer();
-      await client.sendMessage(sender, { image: png }, { quoted: message });
+      await client.sendMessage(
+        sender,
+        { image: png, mimetype: "image/png", caption: "✅ Sticker to image" },
+        { quoted: message }
+      );
     }
 
     logger.info(`✅ toimg for ${sender}`);

@@ -174,6 +174,16 @@ async function connectBot() {
             const cmd = commands[command.toLowerCase()];
             if (!cmd) return false;
 
+            const isGroup = /@g\.us$/i.test(String(sender));
+            const needsGroup = cmd.group === true || cmd.category === "rpg";
+
+            if (needsGroup && !isGroup) {
+              await client.sendMessage(sender, {
+                text: "❌ Fitur ini hanya bisa dipakai di grup"
+              }, { quoted: message });
+              return true;
+            }
+
             if (cmd.category === "rpg" && !isOwner(message)) {
               const uid = getUserId(message);
               if (uid) {
@@ -188,8 +198,7 @@ async function connectBot() {
               }
             }
 
-            let charged = null;
-            let limitNotice = null;
+            let pending = null;
 
             if (usesLimit(cmd)) {
               const uid = getUserId(message);
@@ -203,9 +212,7 @@ async function connectBot() {
                     }, { quoted: message });
                     return true;
                   }
-                  const remaining = db.addLimit(uid, -cost);
-                  charged = { uid, cost, limitMax: user.limitMax };
-                  limitNotice = `🎟️ *Limit terpakai:* -${cost}\nSisa limit: *${remaining ?? Math.max(0, user.limit - cost)}/${user.limitMax}*`;
+                  pending = { uid, cost, limitMax: user.limitMax };
                 }
               }
             }
@@ -218,20 +225,15 @@ async function connectBot() {
               success = false;
               logger.error(`command ${command}: ${err.message}`);
               await client.sendMessage(sender, { text: "❌ Error executing command" }, { quoted: message });
-            } finally {
-              if (charged) {
-                if (success) {
-                  if (limitNotice) {
-                    await client.sendMessage(sender, { text: limitNotice }, { quoted: message }).catch(() => {});
-                  }
-                } else {
-                  const remaining = db.addLimit(charged.uid, charged.cost);
-                  await client.sendMessage(sender, {
-                    text: `♻️ *Command gagal, limit dikembalikan:* +${charged.cost}\nSisa limit: *${remaining ?? 0}/${charged.limitMax}*`
-                  }, { quoted: message }).catch(() => {});
-                }
-              }
             }
+
+            if (success && pending) {
+              const remaining = db.addLimit(pending.uid, -pending.cost);
+              await client.sendMessage(sender, {
+                text: `🎟️ *Limit terpakai:* -${pending.cost}\nSisa limit: *${remaining ?? Math.max(0, pending.limitMax - pending.cost)}/${pending.limitMax}*`
+              }, { quoted: message }).catch(() => {});
+            }
+
             return true;
           };
 
