@@ -2,6 +2,7 @@ const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers
 const fs = require("fs");
 const path = require("path");
 const pino = require("pino");
+const { loadEnv } = require("./lib/env");
 const config = require("./config");
 const helper = require("baileys_helper");
 const { loadCommands } = require("./lib/commandLoader");
@@ -13,6 +14,9 @@ const { getSenderJids, normalizeNumber, getUserId, isPnJid, isLidJid } = require
 const { db } = require("./lib/rpgdb");
 const { isOwner } = require("./lib/owner");
 const { statusOf, commandCost, usesLimit } = require("./lib/rpglimit");
+
+const loadedEnv = loadEnv();
+if (loadedEnv.length) logger.info(`env dimuat: ${loadedEnv.join(", ")}`);
 
 const commandsDir = path.join(__dirname, "commands");
 
