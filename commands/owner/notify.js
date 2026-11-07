@@ -1,7 +1,8 @@
 const logger = require("../../lib/logger");
+const config = require("../../config");
 const { isOwner } = require("../../lib/owner");
 const { listTypes, setEnabled } = require("../../lib/notify");
-const { formatMessage, sampleQuake, joinButtons } = require("../../lib/quake");
+const { formatMessage, sampleQuake, broadcastText } = require("../../lib/quake");
 
 const toggleRows = () =>
   listTypes().map((t) => ({
@@ -14,7 +15,7 @@ const testRows = () =>
   listTypes().map((t) => ({
     id: `notifytest ${t.id}`,
     title: `🧪 Test ${t.label}`,
-    description: "Kirim contoh notif ke chat ini"
+    description: "Kirim contoh notif ke semua grup"
   }));
 
 const buildRows = () => [...toggleRows(), ...testRows()];
@@ -28,7 +29,7 @@ const sendList = (client, sender, message, note = "") => {
   return client.sendInteractiveMessage(
     sender,
     {
-      text: `🔔 *NOTIFIKASI BOT*${note ? `\n\n${note}` : ""}\n\n${lines.join("\n\n")}\n\nPilih tipe untuk ON/OFF, atau 🧪 Test untuk contoh pesan.`,
+      text: `🔔 *NOTIFIKASI BOT*${note ? `\n\n${note}` : ""}\n\n${lines.join("\n\n")}\n\nPilih tipe untuk ON/OFF, atau 🧪 Test untuk kirim contoh ke semua grup.`,
       interactiveButtons: [
         {
           name: "single_select",
@@ -52,13 +53,21 @@ const sendTest = async (client, sender, message, type) => {
     "_Ini pesan uji, data bukan gempa asli._"
   ].join("\n");
 
-  const buttons = joinButtons();
+  await client.sendMessage(
+    sender,
+    { text: `📡 Mengirim pesan uji ke semua grup (jeda ${Number(config.quakeDelayMs ?? 10000) / 1000}s per grup)...` },
+    { quoted: message }
+  );
 
-  if (buttons.length) {
-    return await client.sendInteractiveMessage(sender, { text, interactiveButtons: buttons }, { quoted: message });
-  }
+  const result = await broadcastText(client, text, { label: `test ${type}` });
 
-  return await client.sendMessage(sender, { text }, { quoted: message });
+  await client.sendMessage(
+    sender,
+    { text: `✅ Pesan uji terkirim ke ${result.sent}/${result.total} grup.` },
+    { quoted: message }
+  );
+
+  return result;
 };
 
 const execute = async (client, message, args, commands, commandName) => {
