@@ -7,7 +7,7 @@ module.exports = {
   owners: ["62895327668200", "6285894217616"],
   ownerContact: "62895327668200",
   groupLink: "https://chat.whatsapp.com/CH1Nuh2aFEv5Cxb18qjZiT?s=cl&p=a&iam=2",
-  menuStyle: "image", // "image" (pasti tampil) | "rich" (kartu HTML, gagal->gambar) | "both" (gambar + kartu)
+  richCard: true,
   richBotJid: "867051314767696@bot",
   bmkgBase: "https://data.bmkg.go.id/DataMKG/TEWS/",
   quakeNotify: true,

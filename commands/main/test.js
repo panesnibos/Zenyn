@@ -231,53 +231,33 @@ const execute = async (client, message, args, commands) => {
   };
 
   const wantImage = mode === "img" || mode === "image";
-  const wantRich = mode === "rich" || mode === "card";
-  const wantBoth = mode === "both" || mode === "dua";
 
-  let style = wantImage ? "image" : wantRich ? "rich" : wantBoth ? "both" : String(config.menuStyle || "image");
-  if (style === "rich" && !supported(client)) style = "image";
-
-  const sendCardSafe = async () => {
+  if (!wantImage && config.richCard && supported(client)) {
     try {
       await sendCard(client, sender, view);
       await sendButtons(client, sender, message, view.name, p);
       logger.cmd(`test: rich card -> ${sender}`);
-      return true;
+      return;
     } catch (err) {
-      logger.warn(`test: rich gagal: ${err.message}`);
-      return false;
+      logger.warn(`test: rich gagal, fallback gambar: ${err.message}`);
     }
-  };
-
-  const sendImageSafe = async () => {
-    try {
-      await sendImage(client, sender, message, view);
-      await sendButtons(client, sender, message, view.name, p);
-      logger.cmd(`test: image menu -> ${sender}`);
-      return true;
-    } catch (err) {
-      logger.error(`test menu: ${err.message}`);
-      await client.sendMessage(sender, { text: `❌ Gagal render menu: ${err.message}` }, { quoted: message });
-      return false;
-    }
-  };
-
-  if (style === "both") {
-    await sendImageSafe();
-    await sendCardSafe();
-    return;
   }
 
-  if (style === "rich" && (await sendCardSafe())) return;
-
-  await sendImageSafe();
+  try {
+    await sendImage(client, sender, message, view);
+    await sendButtons(client, sender, message, view.name, p);
+    logger.cmd(`test: image menu -> ${sender}`);
+  } catch (err) {
+    logger.error(`test menu: ${err.message}`);
+    await client.sendMessage(sender, { text: `❌ Gagal render menu: ${err.message}` }, { quoted: message });
+  }
 };
 
 module.exports = {
   name: "test",
   command: ["test"],
   category: "main",
-  description: "Tampilkan menu. .test (sesuai config.menuStyle) | .test img | .test rich | .test both",
+  description: "Tampilkan menu (rich HTML, fallback gambar). .test img = paksa gambar",
   visible: true,
   execute: execute
 };
