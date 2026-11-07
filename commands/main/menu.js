@@ -16,7 +16,7 @@ const riskOf = (cmd) => {
   let marks = "";
   if (cmd.group === true || cmd.category === "rpg") marks += " 👥";
   if (RISKY.has(cmd.name)) marks += " 🔒";
-  if (cmd.premium === true || cmd.category === "premium") marks += " 💎";
+  if (cmd.premium === true) marks += " 💎";
   return marks;
 };
 

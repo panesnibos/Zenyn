@@ -162,7 +162,7 @@ const execute = async (client, message, args) => {
 module.exports = {
   name: "ytsummarize",
   command: ["ytsummarize", "ytsummary", "ringkasyt", "summarizeyt"],
-  category: "premium",
+  category: "tools",
   description: "Ringkas video YouTube dengan AI (premium)",
   visible: true,
   premium: true,

@@ -125,7 +125,7 @@ const execute = async (client, message) => {
 module.exports = {
   name: "agedetect",
   command: ["agedetect", "age-detection", "detectage", "usia"],
-  category: "premium",
+  category: "tools",
   description: "Deteksi perkiraan usia dari foto (premium)",
   visible: true,
   premium: true,

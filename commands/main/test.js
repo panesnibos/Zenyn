@@ -20,7 +20,6 @@ const CAT_META = {
   tools: { label: "TOOLS", icon: "tool", color: "#10b981" },
   downloader: { label: "DOWNLOAD", icon: "download", color: "#f59e0b" },
   owner: { label: "OWNER", icon: "settings", color: "#ef4444" },
-  premium: { label: "PREMIUM", icon: "crown", color: "#f59e0b" },
   fun: { label: "FUN", icon: "zap", color: "#ec4899" }
 };
 
