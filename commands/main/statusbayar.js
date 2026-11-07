@@ -36,7 +36,24 @@ const execute = async (client, message, args) => {
 
   const fresh = autopay.get(id);
   if (fresh.status === "pending") {
-    await autopay.sendInvoice(client, sender, fresh);
+    const target = fresh.chat || sender;
+    const ok = await autopay.sendInvoice(client, target, fresh);
+    if (target !== sender) {
+      if (!ok) {
+        await autopay.sendInvoice(client, sender, fresh);
+        await client.sendMessage(
+          sender,
+          { text: "ℹ️ Chat pribadi tidak bisa dihubungi, tagihan ditampilkan di sini." },
+          { quoted: message }
+        );
+      } else {
+        await client.sendMessage(
+          sender,
+          { text: `📩 Tagihan *${id}* dikirim ulang ke chat pribadi.` },
+          { quoted: message }
+        );
+      }
+    }
   } else {
     await client.sendMessage(
       sender,

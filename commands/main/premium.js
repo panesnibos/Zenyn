@@ -102,8 +102,38 @@ const execute = async (client, message, args) => {
   }
 
   try {
-    const { inv, reused } = await autopay.createPremium({ uid, name, chat: sender, key });
-    await autopay.sendInvoice(client, sender, inv);
+    const isGroup = /@g\.us$/i.test(String(sender));
+    const dm = `${uid}@s.whatsapp.net`;
+    const target = isGroup ? dm : sender;
+
+    const { inv, reused } = await autopay.createPremium({
+      uid,
+      name,
+      chat: target,
+      origin: sender,
+      key
+    });
+
+    let ok = await autopay.sendInvoice(client, target, inv);
+    if (!ok && target !== sender) {
+      ok = await autopay.sendInvoice(client, sender, inv);
+      await client.sendMessage(
+        sender,
+        { text: "ℹ️ Chat pribadi tidak bisa dihubungi, jadi tagihan dikirim ke sini." },
+        { quoted: message }
+      );
+    }
+
+    if (isGroup && ok && target !== sender) {
+      await client.sendMessage(
+        sender,
+        {
+          text: `📩 Tagihan *${inv.id}* (${pkg.label}) sudah dikirim ke chat pribadi kamu. Lanjutkan pembayaran di sana.`
+        },
+        { quoted: message }
+      );
+    }
+
     if (reused) {
       await client.sendMessage(
         sender,
@@ -111,7 +141,7 @@ const execute = async (client, message, args) => {
         { quoted: message }
       );
     }
-    logger.cmd(`premium: tagihan ${inv.id} ${pkg.label} ${rp(pkg.price)} -> ${uid}`);
+    logger.cmd(`premium: tagihan ${inv.id} ${pkg.label} ${rp(pkg.price)} -> ${uid}${isGroup ? " (DM)" : ""}`);
   } catch (err) {
     logger.error(`premium: ${err.message}`);
     await client.sendMessage(
