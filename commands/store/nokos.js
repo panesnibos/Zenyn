@@ -12,8 +12,10 @@ const { isOwner } = require("../../lib/owner");
 const rp = (n) => nokos.rp(n);
 const cut = (s, n) => (String(s || "").length > n ? String(s).slice(0, n - 1) + "…" : String(s || ""));
 
+const cfg = () => config.nokos || {};
+
 // 8 produk + maks 2 baris navigasi = 10 baris (batas aman list WhatsApp)
-const pageSize = () => Math.min(9, Math.max(1, Number(config.nokos?.pageSize ?? 8)));
+const pageSize = () => Math.min(9, Math.max(1, Number(cfg().pageSize ?? 8)));
 
 const b64e = (s) => Buffer.from(String(s || ""), "utf8").toString("base64url");
 const b64d = (s) => {
@@ -26,7 +28,130 @@ const b64d = (s) => {
 
 const offerPrice = (o) => nokos.sellPrice(o?.price);
 
-// urutan prioritas layanan populer di daftar awal
+// ---------- urutan & prioritas ----------
+const SORTS = { pop: "Terlaris", cheap: "Termurah", exp: "Termahal" };
+const SORT_ALIAS = { pop: "pop", terlaris: "pop", cheap: "cheap", termurah: "cheap", exp: "exp", termahal: "exp" };
+
+const defaultSort = () => {
+  const d = String(cfg().defaultSort || "pop").toLowerCase();
+  return SORTS[d] ? d : "pop";
+};
+
+const normSort = (s) => {
+  const v = String(s || "").toLowerCase();
+  return SORTS[v] ? v : defaultSort();
+};
+
+const NAME_TO_CODE = {
+  indonesia: "id",
+  malaysia: "my",
+  singapura: "sg",
+  singapore: "sg",
+  thailand: "th",
+  thailandia: "th",
+  filipina: "ph",
+  philippines: "ph",
+  vietnam: "vn",
+  "viet nam": "vn",
+  india: "in",
+  pakistan: "pk",
+  bangladesh: "bd",
+  rusia: "ru",
+  russia: "ru",
+  kazakhstan: "kz",
+  ukraina: "ua",
+  ukraine: "ua",
+  nigeria: "ng",
+  kenya: "ke",
+  georgia: "ge",
+  "afrika selatan": "za",
+  "south africa": "za",
+  "amerika serikat": "us",
+  "united states": "us",
+  usa: "us",
+  inggris: "gb",
+  "united kingdom": "gb",
+  jerman: "de",
+  germany: "de",
+  belanda: "nl",
+  netherlands: "nl",
+  prancis: "fr",
+  perancis: "fr",
+  france: "fr",
+  kanada: "ca",
+  canada: "ca",
+  australia: "au"
+};
+
+// countryCode kadang angka (mis. "75"); fallback ke nama negara
+const countryCodeOf = (o) => {
+  const code = String(o?.countryCode || "").trim().toLowerCase();
+  if (/^[a-z]{2}$/.test(code)) return code;
+  const raw = String(o?.country || "").trim().toLowerCase();
+  if (/^[a-z]{2}$/.test(raw)) return raw;
+  const name = String(o?.countryName || "").trim().toLowerCase();
+  return NAME_TO_CODE[name] || "";
+};
+
+const priorityList = () => (cfg().countryPriority || []).map((c) => String(c).toLowerCase());
+const countryRank = (code) => {
+  const list = priorityList();
+  const i = list.indexOf(code);
+  return i === -1 ? list.length : i;
+};
+
+const TIER_ALIAS = { standar: "standar", standard: "standar", ekonomi: "ekonomi", economy: "ekonomi" };
+const tierKeyOf = (o) => {
+  const t = String(o?.tier || "").trim().toLowerCase();
+  if (TIER_ALIAS[t]) return TIER_ALIAS[t];
+  const label = String(o?.tierLabel || "").trim().toLowerCase();
+  if (label.includes("stand")) return "standar";
+  if (label.includes("ekonom") || label.includes("econom")) return "ekonomi";
+  return t || label;
+};
+
+const tierRank = (o) => {
+  const list = (cfg().tierPriority || ["standar", "ekonomi"]).map((t) => String(t).toLowerCase());
+  const i = list.indexOf(tierKeyOf(o));
+  return i === -1 ? list.length : i;
+};
+
+// hitung penjualan selesai per kombinasi negara+paket untuk 1 layanan
+const salesMap = (serviceId) => {
+  const map = new Map();
+  const done = nokos.list((x) => x.status === "done" && String(x.serviceId) === String(serviceId));
+  for (const o of done) {
+    const key = `${countryCodeOf({ countryCode: o.countryCode, country: o.country, countryName: o.country })}|${tierKeyOf({
+      tier: o.tier,
+      tierLabel: o.tier
+    })}`;
+    map.set(key, (map.get(key) || 0) + 1);
+  }
+  return map;
+};
+
+const sortOffers = (offers, mode, serviceId) => {
+  const arr = offers.slice();
+  if (mode === "cheap") return arr.sort((a, b) => Number(a.price) - Number(b.price));
+  if (mode === "exp") return arr.sort((a, b) => Number(b.price) - Number(a.price));
+
+  const sales = salesMap(serviceId);
+  const keyOf = (o) => `${countryCodeOf(o)}|${tierKeyOf(o)}`;
+  return arr.sort((a, b) => {
+    const sa = sales.get(keyOf(a)) || 0;
+    const sb = sales.get(keyOf(b)) || 0;
+    if (sb !== sa) return sb - sa;
+    const ta = tierRank(a);
+    const tb = tierRank(b);
+    if (ta !== tb) return ta - tb;
+    const ca = countryRank(countryCodeOf(a));
+    const cb = countryRank(countryCodeOf(b));
+    if (ca !== cb) return ca - cb;
+    return Number(a.price) - Number(b.price);
+  });
+};
+
+// ---------- urutan prioritas layanan populer ----------
 const POPULAR = [
   /whatsapp/i,
   /telegram/i,
@@ -57,10 +182,10 @@ const sortServices = (list) =>
     (a, b) => popularity(a) - popularity(b) || String(a.name).localeCompare(String(b.name))
   );
 
-const offerList = (offers) =>
-  (Array.isArray(offers) ? offers : [])
-    .filter((o) => o.available === undefined || Number(o.available) > 0)
-    .sort((a, b) => Number(a.price) - Number(b.price));
+const availableOffers = (offers) =>
+  (Array.isArray(offers) ? offers : []).filter(
+    (o) => o.available === undefined || Number(o.available) > 0
+  );
 
 // ---------- filter (tier/negara) ----------
 const parseFilters = (args) => {
@@ -110,7 +235,7 @@ const usage = (p) =>
     `• ${p}nokosbatal <order> — batalkan pesanan`,
     `• ${p}nokosriwayat — riwayat pesanan`,
     "",
-    "Tombol ⬅️/➡️ untuk pindah halaman.",
+    "Tombol ⬅️/➡️ pindah halaman. Tombol 🔥 Terlaris / 💸 Termurah / 💰 Termahal untuk urutan.",
     "Setelah dibayar, nomor & kode OTP dikirim otomatis ke chat ini."
   ].join("\n");
 
@@ -127,21 +252,34 @@ const serviceNameOf = async (serviceId) => {
 const serviceRows = (list) =>
   list.map((s) => ({ id: `nokos svc ${s.id}`, title: cut(s.name, 24), description: cut(s.category || s.id, 72) }));
 
-const offerRows = (list, serviceId, startIndex, filterTok) =>
+const offerRows = (list, serviceId, startIndex, filterTok, mode) =>
   list.map((o, i) => ({
-    id: `nokos buy ${serviceId} ${startIndex + i}${filterTok ? ` ${filterTok}` : ""}`,
+    id: `nokos buy ${serviceId} ${startIndex + i} s=${mode}${filterTok ? ` ${filterTok}` : ""}`,
     title: cut(`${o.countryEmoji || ""} ${o.countryName || o.country || "-"} ${o.tierLabel || o.tier || ""}`.trim(), 24),
     description: cut(`${rp(offerPrice(o))} • stok ${o.available ?? "?"}`, 72)
   }));
 
-const sendList = async (client, message, title, rows, fallbackText) => {
+const sortRows = (serviceId, mode, filterTok) => {
+  const mk = (key, title, desc) => ({
+    id: `nokos svc ${serviceId} 0 s=${key}${filterTok ? ` ${filterTok}` : ""}`,
+    title: `${mode === key ? "✅ " : ""}${title}`,
+    description: desc
+  });
+  return [
+    mk("pop", "🔥 Terlaris", "Penjualan terbanyak / rekomendasi"),
+    mk("cheap", "💸 Termurah", "Harga terendah dulu"),
+    mk("exp", "💰 Termahal", "Harga tertinggi dulu")
+  ];
+};
+
+const sendSections = async (client, message, title, sections, fallbackText) => {
   try {
     await client.sendInteractiveMessage(
       message.key.remoteJid,
       {
         text: fallbackText,
         interactiveButtons: [
-          { name: "single_select", buttonParamsJson: JSON.stringify({ title, sections: [{ title, rows }] }) }
+          { name: "single_select", buttonParamsJson: JSON.stringify({ title, sections }) }
         ]
       },
       { quoted: message }
@@ -174,9 +312,7 @@ const listServices = async (client, message, query, page, p) => {
   const items = sorted.slice(cur * size, cur * size + size);
   const pages = Math.max(1, Math.ceil(sorted.length / size));
 
-  const nav = navRows(cur, sorted.length, (n) =>
-    `nokos list ${n}${q ? ` q=${b64e(query)}` : ""}`
-  );
+  const nav = navRows(cur, sorted.length, (n) => `nokos list ${n}${q ? ` q=${b64e(query)}` : ""}`);
 
   const body = [
     "📱 *NOMOR VIRTUAL (OTP)*",
@@ -187,11 +323,17 @@ const listServices = async (client, message, query, page, p) => {
     ...items.map((s) => `• ${s.name} — id: ${s.id}`)
   ].join("\n");
 
-  await sendList(client, message, "Pilih Layanan", [...serviceRows(items), ...nav], body);
+  await sendSections(
+    client,
+    message,
+    "Pilih Layanan",
+    [{ title: "Pilih Layanan", rows: [...serviceRows(items), ...nav] }],
+    body
+  );
 };
 
 // ---------- daftar penawaran ----------
-const listOffers = async (client, message, serviceId, page, filterArgs, p) => {
+const listOffers = async (client, message, serviceId, page, sort, filterArgs, p) => {
   if (!serviceId) {
     return client.sendMessage(
       message.key.remoteJid,
@@ -200,8 +342,10 @@ const listOffers = async (client, message, serviceId, page, filterArgs, p) => {
     );
   }
 
+  const mode = normSort(sort);
   const { tier, country } = parseFilters(filterArgs);
-  const offers = offerList(await ao.nokosOffers(serviceId, { tier, country }));
+  const offers = sortOffers(availableOffers(await ao.nokosOffers(serviceId, { tier, country })), mode, serviceId);
+
   if (!offers.length) {
     return client.sendMessage(
       message.key.remoteJid,
@@ -216,14 +360,16 @@ const listOffers = async (client, message, serviceId, page, filterArgs, p) => {
   const pages = Math.max(1, Math.ceil(offers.length / size));
   const filterTok = filterToken(filterArgs);
 
-  const nav = navRows(cur, offers.length, (n) =>
-    `nokos svc ${serviceId} ${n}${filterTok ? ` ${filterTok}` : ""}`
+  const nav = navRows(
+    cur,
+    offers.length,
+    (n) => `nokos svc ${serviceId} ${n} s=${mode}${filterTok ? ` ${filterTok}` : ""}`
   );
 
   const body = [
     "📱 *PILIH NEGARA & PAKET*",
     "",
-    `Halaman ${cur + 1}/${pages} • ${offers.length} penawaran (termurah dulu)`,
+    `Halaman ${cur + 1}/${pages} • ${offers.length} penawaran • Urutan: ${SORTS[mode]}`,
     "Pilih lewat tombol untuk memesan.",
     "",
     ...items.map(
@@ -232,11 +378,20 @@ const listOffers = async (client, message, serviceId, page, filterArgs, p) => {
     )
   ].join("\n");
 
-  await sendList(client, message, "Pilih Negara & Paket", [...offerRows(items, serviceId, cur * size, filterTok), ...nav], body);
+  await sendSections(
+    client,
+    message,
+    "Pilih Negara & Paket",
+    [
+      { title: "Penawaran", rows: [...offerRows(items, serviceId, cur * size, filterTok, mode), ...nav] },
+      { title: "Urutkan", rows: sortRows(serviceId, mode, filterTok) }
+    ],
+    body
+  );
 };
 
 // ---------- beli ----------
-const buyOffer = async (client, message, serviceId, indexArg, filterArgs, uid, name, p) => {
+const buyOffer = async (client, message, serviceId, indexArg, sort, filterArgs, uid, name, p) => {
   const idx = Number(indexArg);
   if (!serviceId || !Number.isInteger(idx) || idx < 0) {
     return client.sendMessage(
@@ -246,8 +401,9 @@ const buyOffer = async (client, message, serviceId, indexArg, filterArgs, uid, n
     );
   }
 
+  const mode = normSort(sort);
   const { tier, country } = parseFilters(filterArgs);
-  const offers = offerList(await ao.nokosOffers(serviceId, { tier, country }));
+  const offers = sortOffers(availableOffers(await ao.nokosOffers(serviceId, { tier, country })), mode, serviceId);
   const offer = offers[idx];
   if (!offer) {
     return client.sendMessage(
@@ -365,15 +521,18 @@ const history = async (client, message, uid, p) => {
 // ---------- parser sub-command ----------
 const splitParams = (tokens) => {
   let page = 0;
+  let sort = "";
   const filters = [];
   for (const t of tokens) {
-    const s = String(t || "");
+    const s = String(t || "").trim();
     if (!s) continue;
     if (/^\d+$/.test(s)) page = Number(s);
     else if (s.startsWith("f=")) filters.push(...tokenArgs(s));
+    else if (s.startsWith("s=")) sort = s.slice(2);
+    else if (SORT_ALIAS[s.toLowerCase()]) sort = SORT_ALIAS[s.toLowerCase()];
     else filters.push(s);
   }
-  return { page, filters };
+  return { page, sort, filters };
 };
 
 const execute = async (client, message, args, commands, command) => {
@@ -421,10 +580,10 @@ const execute = async (client, message, args, commands, command) => {
     );
   }
 
-  if (config.nokos?.enabled === false) {
+  if (cfg().enabled === false) {
     return client.sendMessage(
       sender,
-      { text: isOwner(message) ? "Nokos dimatikan (config.nokos.enabled = false)." : "Fitur nomor virtual sedang nonaktif." },
+      { text: isOwner(message) ? "Nokos dimatikan (setting/nokos.js -> enabled: false)." : "Fitur nomor virtual sedang nonaktif." },
       { quoted: message }
     );
   }
@@ -447,14 +606,14 @@ const execute = async (client, message, args, commands, command) => {
 
     if (sub === "svc") {
       const serviceId = args[1];
-      const { page, filters } = splitParams(args.slice(2));
-      return await listOffers(client, message, serviceId, page, filters, p);
+      const { page, sort, filters } = splitParams(args.slice(2));
+      return await listOffers(client, message, serviceId, page, sort, filters, p);
     }
 
     if (sub === "buy") {
       const serviceId = args[1];
-      const { filters } = splitParams(args.slice(3));
-      return await buyOffer(client, message, serviceId, args[2], filters, uid, name, p);
+      const { sort, filters } = splitParams(args.slice(3));
+      return await buyOffer(client, message, serviceId, args[2], sort, filters, uid, name, p);
     }
 
     if (sub === "cek") return await checkOrder(client, message, args[1], uid, p);
@@ -470,7 +629,7 @@ const execute = async (client, message, args, commands, command) => {
     const query = args.join(" ").trim();
     if (!query) return await listServices(client, message, "", 0, p);
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(query)) {
-      return await listOffers(client, message, query, 0, [], p);
+      return await listOffers(client, message, query, 0, "", [], p);
     }
     return await listServices(client, message, query, 0, p);
   } catch (err) {
