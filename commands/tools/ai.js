@@ -5,20 +5,27 @@ const ai = require("../../lib/ai");
 
 const MAX_ANSWER = 3500;
 const MAX_DOWNLOAD_BYTES = 20 * 1024 * 1024;
+const IMAGE_LIMIT = 3;
+
+const IMAGE_MODES = new Set(["img", "image", "gambar", "imagine"]);
+const EDIT_MODES = new Set(["edit", "ubah", "editin"]);
 
 const USAGE = [
   "🤖 *AI CHAT*",
   "",
   "Format:",
-  `• .ai <pertanyaan>`,
-  `• Reply gambar/dokumen lalu .ai <pertanyaan>`,
-  `• Kirim gambar/dokumen dengan caption .ai <pertanyaan>`,
+  "• .ai <pertanyaan>",
+  "• Reply gambar/dokumen lalu .ai <pertanyaan>",
+  "• Kirim gambar/dokumen dengan caption .ai <pertanyaan>",
+  "• .ai img <prompt> — buat gambar baru",
+  "• Reply gambar lalu .ai edit <instruksi> — edit gambar",
   "",
   "Contoh:",
   "• .ai jelaskan apa itu black hole",
-  "• Reply foto → .ai ini makanan apa?",
+  "• .ai img kucing pakai topi koboi, gaya lukisan",
+  "• Reply foto → .ai edit ubah jadi gaya anime",
   "",
-  "Biaya limit: teks = 1, gambar/dokumen = 2"
+  "Biaya limit: teks = 1, gambar/dokumen = 2, buat/edit gambar = 3"
 ].join("\n");
 
 const unwrapMessage = (m) => {
@@ -50,7 +57,10 @@ const mediaInfo = (found) => {
 
 const execute = async (client, message, args) => {
   const sender = message.key.remoteJid;
-  const prompt = args.join(" ").trim();
+  const mode = String(args[0] || "").toLowerCase();
+  const isImageMode = IMAGE_MODES.has(mode);
+  const isEditMode = EDIT_MODES.has(mode);
+  const prompt = isImageMode || isEditMode ? args.slice(1).join(" ").trim() : args.join(" ").trim();
 
   try {
     const contextInfo =
@@ -73,6 +83,22 @@ const execute = async (client, message, args) => {
       if (found) targetMsg = message;
     }
 
+    if (isEditMode && !found) {
+      return await client.sendMessage(
+        sender,
+        { text: "❌ Reply gambar (atau kirim gambar dengan caption *.ai edit <instruksi>*)" },
+        { quoted: message }
+      );
+    }
+
+    if ((isImageMode || isEditMode) && !prompt) {
+      return await client.sendMessage(
+        sender,
+        { text: `❌ Format: *.ai ${isEditMode ? "edit <instruksi>" : "img <prompt>"}*` },
+        { quoted: message }
+      );
+    }
+
     if (!found && !prompt) {
       return await client.sendMessage(sender, { text: USAGE }, { quoted: message });
     }
@@ -88,18 +114,12 @@ const execute = async (client, message, args) => {
     const hasMedia = !!found;
     let media = null;
 
-    if (hasMedia) {
+    if (hasMedia && (isEditMode || !isImageMode)) {
       const info = mediaInfo(found);
       if (info.fileLength && info.fileLength > MAX_DOWNLOAD_BYTES) {
         await client.sendMessage(sender, { text: "❌ File terlalu besar (maks 20 MB)" }, { quoted: message });
         return false;
       }
-
-      await client.sendMessage(
-        sender,
-        { text: `⏳ ${info.kind === "image" ? "Menganalisis gambar" : "Membaca dokumen"}...` },
-        { quoted: message }
-      );
 
       const buffer = await downloadMediaMessage(targetMsg, "buffer", {}, {
         logger: pino({ level: "silent" }),
@@ -112,6 +132,35 @@ const execute = async (client, message, args) => {
       }
 
       media = { kind: info.kind, mimetype: info.mimetype, buffer };
+    }
+
+    if (isImageMode || isEditMode) {
+      await client.sendMessage(
+        sender,
+        { text: isEditMode ? "🎨 Mengedit gambar..." : "🎨 Membuat gambar..." },
+        { quoted: message }
+      );
+
+      const result = await ai.generateImage({ prompt, media: isEditMode ? media : null });
+
+      const note = result.text ? `\n\n_${result.text.slice(0, 300)}_` : "";
+      await client.sendMessage(
+        sender,
+        { image: result.buffer, caption: `🎨 ${prompt}${note}` },
+        { quoted: message }
+      );
+
+      logger.info(`ai image: ${sender} mode=${isEditMode ? "edit" : "img"}`);
+      return { limitCost: IMAGE_LIMIT };
+    }
+
+    if (hasMedia) {
+      const info = mediaInfo(found);
+      await client.sendMessage(
+        sender,
+        { text: `⏳ ${info.kind === "image" ? "Menganalisis gambar" : "Membaca dokumen"}...` },
+        { quoted: message }
+      );
     } else {
       await client.sendMessage(sender, { text: "⏳ Thinking..." }, { quoted: message });
     }
@@ -139,7 +188,7 @@ module.exports = {
   name: "ai",
   command: ["ai", "ask"],
   category: "tools",
-  description: "Tanya AI (teks, gambar, dokumen)",
+  description: "Tanya AI (teks, gambar, dokumen, buat/edit gambar)",
   visible: true,
   limit: 1,
   execute: execute
