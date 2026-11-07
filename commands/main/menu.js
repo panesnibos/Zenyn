@@ -13,9 +13,11 @@ const RISKY = new Set([
 ]);
 
 const riskOf = (cmd) => {
-  if (cmd.group === true || cmd.category === "rpg") return " 👥";
-  if (RISKY.has(cmd.name)) return " 🔒";
-  return "";
+  let marks = "";
+  if (cmd.group === true || cmd.category === "rpg") marks += " 👥";
+  if (RISKY.has(cmd.name)) marks += " 🔒";
+  if (cmd.premium === true || cmd.category === "premium") marks += " 💎";
+  return marks;
 };
 
 const buildMenuText = (p, categories, commands, user) => {
@@ -61,7 +63,7 @@ const buildMenuText = (p, categories, commands, user) => {
   lines.push("│╰───➤");
   lines.push("╰─────┈➤");
   lines.push("");
-  lines.push("👥 wajib grup • 🔒 khusus owner");
+  lines.push("👥 wajib grup • 🔒 khusus owner • 💎 premium");
 
   return lines.join("\n");
 };

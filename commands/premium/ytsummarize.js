@@ -165,5 +165,6 @@ module.exports = {
   category: "premium",
   description: "Ringkas video YouTube dengan AI (premium)",
   visible: true,
+  premium: true,
   execute
 };

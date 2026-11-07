@@ -128,5 +128,6 @@ module.exports = {
   category: "premium",
   description: "Deteksi perkiraan usia dari foto (premium)",
   visible: true,
+  premium: true,
   execute
 };

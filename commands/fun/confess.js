@@ -92,5 +92,6 @@ module.exports = {
   category: "fun",
   description: "Kirim confess anonim ke grup (premium)",
   visible: true,
+  premium: true,
   execute
 };
