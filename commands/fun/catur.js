@@ -7,12 +7,14 @@ const { getUserId, resolveTarget, normalizeNumber } = require("../../lib/rpgutil
 const { getPrefix } = require("../../lib/prefix");
 const catur = require("../../lib/catur");
 const { boardCard, textBoard } = require("../../lib/caturcard");
-const { sendRichHtml, supported } = require("../../lib/richsend");
+const { sendRichHtml, sendRichGame, supported } = require("../../lib/richsend");
+const caturUi = require("../../lib/caturui");
 
 const games = new Map(); // key -> game
 const TTL = 2 * 60 * 60 * 1000;
 const MAX_GAMES = 400;
 const PAGE_SIZE = 8; // baris list per halaman (biar aman di WhatsApp)
+const cfg = () => config.catur || {};
 
 const LEVELS = { mudah: "mudah", sedang: "sedang", susah: "susah", easy: "mudah", hard: "susah" };
 
@@ -181,6 +183,18 @@ const render = async (client, chat, g, p, extra = "") => {
   }
 };
 
+// ---------- kartu game HTML (JS jalan di webview WhatsApp) ----------
+const sendGameCard = async (client, chat) => {
+  if (cfg().ui === false || !supported(client)) return false;
+  try {
+    await sendRichGame(client, chat, caturUi.html, cfg().brand || "Zenyn Chess");
+    return true;
+  } catch (err) {
+    logger.warn(`catur: kartu game gagal (${err.message})`);
+    return false;
+  }
+};
+
 const newGame = (mode, { level = "sedang", white, black } = {}) => ({
   state: catur.initial(),
   mode,
@@ -228,6 +242,38 @@ const execute = async (client, message, args, commands, commandName) => {
   try {
     if (sub === "help" || sub === "bantuan") {
       return client.sendMessage(chat, { text: usage(p) }, { quoted: message });
+    }
+
+    // ---------- kartu game: main penuh di dalam kartu (tap petak) ----------
+    if (["kartu", "game", "ui", "rich"].includes(sub)) {
+      const ok = await sendGameCard(client, chat);
+      if (!ok) {
+        return client.sendMessage(
+          chat,
+          { text: `❌ Kartu game tak bisa dikirim di sini. Pakai *${p}catur chat* (mode teks + klik).` },
+          { quoted: message }
+        );
+      }
+      logger.cmd(`catur: kartu -> ${chat}`);
+      return;
+    }
+
+    if (!a.length && cfg().ui !== false) {
+      const ok = await sendGameCard(client, chat);
+      if (ok) {
+        logger.cmd(`catur: kartu -> ${chat}`);
+        return;
+      }
+    }
+
+    // ---------- mode chat (papan kartu + AI server + daftar klik) ----------
+    if (["chat", "klasik", "text", "teks"].includes(sub)) {
+      const level = LEVELS[String(a[1] || "").toLowerCase()] || cfg().defaultLevel || "sedang";
+      const g = newGame("bot", { level, white: uid, black: "Bot" });
+      g.quoted = quoted;
+      games.set(botKey, g);
+      logger.cmd(`catur: chat ${level} -> ${uid}`);
+      return await render(client, chat, g, p, `♟️ Mode chat vs bot (${level}). Kamu putih.`);
     }
 
     if (["batal", "nyerah", "resign", "quit", "stop"].includes(sub)) {
@@ -392,27 +438,23 @@ const execute = async (client, message, args, commands, commandName) => {
 
 const usage = (p) =>
   [
-    "♞ *CATUR* — papan di kartu, langkah bisa diklik",
+    "♞ *CATUR* — main penuh di kartu (tap petak)",
     "",
-    `• *${p}catur* — mulai lawan bot (sedang)`,
-    `• *${p}catur mudah | sedang | susah* — level bot`,
-    `• *${p}catur lawan @user* — lawan pemain (grup)`,
-    `• *${p}catur bidak* — buka daftar bidak (klik)`,
-    `• klik bidak ▸ klik tujuan — jalan tanpa ngetik`,
-    `• *${p}catur e2e4* / *${p}catur nf3* / *${p}catur o-o* — kalau mau ketik`,
-    `• *${p}catur papan* — kirim ulang papan`,
-    `• *${p}catur undo* — batalkan (mode bot)`,
-    `• *${p}catur batal* — berhenti`,
+    `• *${p}catur* — buka kartu catur (tap bidak ▸ tap tujuan)`,
+    `• *${p}catur kartu* — kirim ulang kartu`,
+    `• *${p}catur chat [mudah|sedang|susah]* — mode teks + AI server`,
+    `• *${p}catur lawan @user* — lawan pemain (grup, mode chat)`,
     "",
-    "Papan rich hanya tampilan (WhatsApp tak izinkan klik di kartu). Jalan lewat daftar klik di bawah papan."
+    `Mode chat: *${p}catur bidak* (daftar klik), *${p}catur e2e4*, *${p}catur papan*, *${p}catur undo*, *${p}catur batal*`,
+    "Kartu: level Mudah/Sedang/Susah/2 Pemain, promosi, undo, flip, resign — semua di HP."
   ].join("\n");
 
 module.exports = {
   name: "catur",
   command: ["catur", "chess", "caturs"],
   category: "fun",
-  description: "Main catur (papan rich card + langkah klik)",
+  description: "Main catur (kartu game interaktif + mode chat)",
   visible: true,
   execute,
-  _internal: { games, newGame, render, keyOf, pvpKey, TTL, pieceList, destList, PAGE_SIZE }
+  _internal: { games, newGame, render, keyOf, pvpKey, TTL, pieceList, destList, PAGE_SIZE, sendGameCard }
 };

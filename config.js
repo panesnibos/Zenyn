@@ -20,6 +20,7 @@ module.exports = {
   confess: { premium: true, cooldownMs: 300000, maxLen: 300 },
   nokos: require("./setting/nokos"),
   broadcast: require("./setting/broadcast"),
+  catur: require("./setting/catur"),
   premiumPackages: {
     "7": { label: "7 Hari", price: 5000, days: 7 },
     "30": { label: "1 Bulan", price: 15000, days: 30 },
