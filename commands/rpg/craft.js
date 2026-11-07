@@ -51,13 +51,15 @@ const execute = async (client, message, args, commands, commandName) => {
       return await client.sendMessage(sender, { text: `💸 Butuh ${recipe.cost} gold. Saldo ${user.money}.` }, { quoted: message });
     }
 
-    for (const [name, qty] of Object.entries(recipe.materials)) {
+    for (const [matName, qty] of Object.entries(recipe.materials)) {
+      const name = findItemDef(matName)?.name || matName;
       if (!db.hasItem(userId, name, qty)) {
         return await client.sendMessage(sender, { text: `❌ Material kurang: ${name} x${qty}` }, { quoted: message });
       }
     }
 
-    for (const [name, qty] of Object.entries(recipe.materials)) {
+    for (const [matName, qty] of Object.entries(recipe.materials)) {
+      const name = findItemDef(matName)?.name || matName;
       db.removeItem(userId, name, qty);
     }
 

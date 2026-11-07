@@ -60,41 +60,41 @@
     "emoji": "💍",
     "cost": 250,
     "qty": 1,
-    "materials": { "Iron": 2, "Stone": 2 }
+    "materials": { "Iron Ingot": 2, "Stone": 2 }
   },
   "mithril-sword": {
     "name": "Mithril Sword",
     "emoji": "🗡️",
     "cost": 3000,
     "qty": 1,
-    "materials": { "Iron": 10, "Ore": 8, "Stone": 5 }
+    "materials": { "Iron Ingot": 10, "Ore": 8, "Stone": 5 }
   },
   "mithril-armor": {
     "name": "Mithril Armor",
     "emoji": "🛡️",
     "cost": 3000,
     "qty": 1,
-    "materials": { "Iron": 12, "Ore": 6, "Stone": 6 }
+    "materials": { "Iron Ingot": 12, "Ore": 6, "Stone": 6 }
   },
   "dragon-sword": {
     "name": "Dragon Sword",
     "emoji": "🐉",
     "cost": 8000,
     "qty": 1,
-    "materials": { "Iron": 20, "Ore": 15, "Stone": 10, "Diamond": 3 }
+    "materials": { "Iron Ingot": 20, "Ore": 15, "Stone": 10, "Diamond": 3 }
   },
   "dragon-armor": {
     "name": "Dragon Armor",
     "emoji": "🐲",
     "cost": 8000,
     "qty": 1,
-    "materials": { "Iron": 22, "Ore": 12, "Stone": 12, "Diamond": 3 }
+    "materials": { "Iron Ingot": 22, "Ore": 12, "Stone": 12, "Diamond": 3 }
   },
   "dragon-amulet": {
     "name": "Dragon Amulet",
     "emoji": "🔥",
     "cost": 6000,
     "qty": 1,
-    "materials": { "Iron": 10, "Diamond": 2, "Herb": 8 }
+    "materials": { "Iron Ingot": 10, "Diamond": 2, "Herb": 8 }
   }
 }
