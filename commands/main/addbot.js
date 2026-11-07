@@ -153,7 +153,7 @@ const execute = async (client, message, args) => {
 module.exports = {
   name: "addbot",
   command: ["addbot", "sewabot"],
-  category: "premium",
+  category: "main",
   description: "Sewa bot untuk grup via QRIS (1/2/3 bulan / permanent)",
   visible: true,
   execute
