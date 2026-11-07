@@ -15,7 +15,7 @@ const RISKY = new Set([
 const riskOf = (cmd) => {
   let marks = "";
   if (cmd.group === true || cmd.category === "rpg") marks += " 👥";
-  if (RISKY.has(cmd.name)) marks += " 🔒";
+  if (cmd.category === "owner" || RISKY.has(cmd.name)) marks += " 🔒";
   if (cmd.premium === true) marks += " 💎";
   return marks;
 };
