@@ -16,6 +16,7 @@ const { db } = require("./lib/rpgdb");
 const { isOwner } = require("./lib/owner");
 const { statusOf, commandCost, usesLimit } = require("./lib/rpglimit");
 const { startWatcher, stopWatcher } = require("./lib/quake");
+const autopay = require("./lib/autopay");
 
 const loadedEnv = loadEnv();
 if (loadedEnv.length) logger.info(`env dimuat: ${loadedEnv.join(", ")}`);
@@ -134,8 +135,10 @@ async function connectBot() {
         logger.kv("Phone", client.user.id);
         reconnectAttempts = 0;
         startWatcher(client);
+        autopay.start(client);
       } else if (connection === "close") {
         stopWatcher();
+        autopay.stop();
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const reason = lastDisconnect?.error?.message || lastDisconnect?.error?.output?.payload?.message;
         const shouldReconnect = statusCode !== DisconnectReason.loggedOut;

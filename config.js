@@ -9,6 +9,18 @@ module.exports = {
   groupLink: "https://chat.whatsapp.com/CH1Nuh2aFEv5Cxb18qjZiT?s=cl&p=a&iam=2",
   richCard: true,
   richBotJid: "867051314767696@bot",
+  autoorder: {
+    base: "https://auto-order.alxzyy.my.id/api/v2",
+    apiKey: "", // kosongkan -> pakai env AUTOORDER_API_KEY
+    pollMs: 6000,
+    maxPending: 3
+  },
+  premiumPackages: {
+    "7": { label: "7 Hari", price: 5000, days: 7 },
+    "30": { label: "1 Bulan", price: 15000, days: 30 },
+    "60": { label: "2 Bulan", price: 25000, days: 60 },
+    "90": { label: "3 Bulan", price: 35000, days: 90 }
+  },
   bmkgBase: "https://data.bmkg.go.id/DataMKG/TEWS/",
   quakeNotify: true,
   quakePollMs: 60000,
