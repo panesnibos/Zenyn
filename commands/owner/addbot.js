@@ -1,15 +1,9 @@
 const logger = require("../../lib/logger");
-const { db } = require("../../lib/rpgdb");
-const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const { isOwner } = require("../../lib/owner");
-const { statusOf } = require("../../lib/rpglimit");
 
-const COOLDOWN_MS = 60 * 1000;
 const INVITE_RE = /chat\.whatsapp\.com\/(?:invite\/)?([0-9A-Za-z]{10,})/i;
 const RAW_RE = /^[0-9A-Za-z]{10,}$/;
-
-const cooldown = new Map();
 
 const parseCode = (input) => {
   const text = String(input || "").trim();
@@ -31,24 +25,9 @@ const joinError = (err) => {
 const execute = async (client, message, args) => {
   const sender = message.key.remoteJid;
   const p = getPrefix(message);
-  const uid = getUserId(message);
-  const name = message.pushName || "Player";
 
-  if (!uid) {
-    return await client.sendMessage(sender, { text: "❌ Tidak bisa mengidentifikasi pengguna." }, { quoted: message });
-  }
-
-  const user = db.getUser(uid, name);
-  const premium = isOwner(message) || statusOf(user) !== "User";
-
-  if (!premium) {
-    return await client.sendMessage(
-      sender,
-      {
-        text: `🔒 *KHUSUS PREMIUM*\n\nFitur ${p}addbot hanya untuk Premium/Donatur.\nBeli premium: *${p}premium*`
-      },
-      { quoted: message }
-    );
+  if (!isOwner(message)) {
+    return await client.sendMessage(sender, { text: "❌ Command ini khusus owner." }, { quoted: message });
   }
 
   const code = parseCode(args?.[0] || "");
@@ -56,22 +35,11 @@ const execute = async (client, message, args) => {
     return await client.sendMessage(
       sender,
       {
-        text: `🤖 *ADD BOT KE GRUP*\n\nKirim link undangan grup:\n*${p}addbot https://chat.whatsapp.com/XXXXXXXXXXXX*\n\nBot harus belum jadi member grup itu.`
+        text: `🤖 *ADD BOT KE GRUP* (owner)\n\nKirim link undangan grup:\n*${p}addbot https://chat.whatsapp.com/XXXXXXXXXXXX*\n\nBot harus belum jadi member grup itu.`
       },
       { quoted: message }
     );
   }
-
-  const last = cooldown.get(uid) || 0;
-  const wait = COOLDOWN_MS - (Date.now() - last);
-  if (wait > 0) {
-    return await client.sendMessage(
-      sender,
-      { text: `⏳ Tunggu ${Math.ceil(wait / 1000)} detik lagi sebelum ${p}addbot berikutnya.` },
-      { quoted: message }
-    );
-  }
-  cooldown.set(uid, Date.now());
 
   try {
     if (typeof client.groupAcceptInvite !== "function") {
@@ -89,7 +57,7 @@ const execute = async (client, message, args) => {
       /* nama grup opsional */
     }
 
-    logger.cmd(`addbot: ${uid} -> ${jid}${groupName ? ` (${groupName})` : ""}`);
+    logger.cmd(`addbot: owner -> ${jid}${groupName ? ` (${groupName})` : ""}`);
     await client.sendMessage(
       sender,
       {
@@ -98,7 +66,7 @@ const execute = async (client, message, args) => {
       { quoted: message }
     );
   } catch (err) {
-    logger.warn(`addbot: ${uid} gagal: ${err.message}`);
+    logger.warn(`addbot: gagal: ${err.message}`);
     await client.sendMessage(sender, { text: `❌ ${joinError(err)}` }, { quoted: message });
   }
 };
@@ -106,8 +74,8 @@ const execute = async (client, message, args) => {
 module.exports = {
   name: "addbot",
   command: ["addbot", "joinbot"],
-  category: "premium",
-  description: "Masukkan bot ke grup lewat link undangan (khusus premium)",
-  visible: true,
+  category: "owner",
+  description: "Masukkan bot ke grup lewat link undangan (owner)",
+  visible: false,
   execute
 };

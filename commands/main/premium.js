@@ -29,7 +29,6 @@ const intro = (p, user) =>
     "• Limit harian ∞ (tanpa batas)",
     "• Semua fitur tools & downloader terbuka",
     "• Prioritas respon bot",
-    `• Masukkan bot ke grup sendiri (${p}addbot)`,
     "",
     "*Paket tersedia:*",
     ...Object.entries(packages()).map(([, v]) => `• ${v.label} — ${rp(v.price)}`),
