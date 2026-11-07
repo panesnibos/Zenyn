@@ -1,5 +1,6 @@
 const logger = require("../../lib/logger");
 const { downloadMediaMessage } = require("@whiskeysockets/baileys");
+const { stickerToVideo } = require("../../lib/sticker");
 const sharp = require("sharp");
 const pino = require("pino");
 
@@ -37,12 +38,27 @@ const execute = async (client, message, args, commands) => {
     const isAnimated = target.isAnimated || (meta.pages || 1) > 1;
 
     if (isAnimated) {
-      const gif = await sharp(buffer, { animated: true }).gif().toBuffer();
-      await client.sendMessage(
-        sender,
-        { video: gif, mimetype: "video/gif", gifPlayback: true, caption: "✅ Sticker to image" },
-        { quoted: message }
-      );
+      let vid = null;
+      try {
+        vid = await stickerToVideo(buffer);
+      } catch (err) {
+        logger.warn(`toimg ffmpeg gagal, fallback ke gif: ${err.message}`);
+      }
+
+      if (vid) {
+        await client.sendMessage(
+          sender,
+          { video: vid, mimetype: "video/mp4", gifPlayback: true, caption: "✅ Sticker to video" },
+          { quoted: message }
+        );
+      } else {
+        const gif = await sharp(buffer, { animated: true }).gif().toBuffer();
+        await client.sendMessage(
+          sender,
+          { video: gif, mimetype: "video/mp4", gifPlayback: true, caption: "✅ Sticker to video" },
+          { quoted: message }
+        );
+      }
     } else {
       const png = await sharp(buffer).png().toBuffer();
       await client.sendMessage(
@@ -63,7 +79,7 @@ module.exports = {
   name: "toimg",
   command: ["toimg", "toimage", "img"],
   category: "tools",
-  description: "Convert sticker ke gambar",
+  description: "Convert sticker ke gambar/video",
   visible: true,
   execute: execute
 };
