@@ -1,4 +1,5 @@
 const fetch = require("node-fetch");
+const sharp = require("sharp");
 const logger = require("../../lib/logger");
 const config = require("../../config");
 const { getCommandsByCategory } = require("../../lib/commandLoader");
@@ -9,6 +10,8 @@ const { getUserId, getSenderJids, normalizeNumber } = require("../../lib/rpgutil
 const { footerFor } = require("../../lib/tips");
 const { timeWIB, greeting } = require("../../lib/stamp");
 const { renderMenu } = require("../../lib/menuImage");
+const { card } = require("../../lib/richcard");
+const { sendRichHtml, supported } = require("../../lib/richsend");
 
 const CAT_META = {
   main: { label: "MAIN", icon: "user", color: "#3b82f6" },
@@ -25,7 +28,7 @@ const metaFor = (key) =>
 const buildCategories = (cats) =>
   Object.keys(cats)
     .filter((key) => Array.isArray(cats[key]) && cats[key].length)
-    .map((key) => ({ key, ...metaFor(key) }));
+    .map((key) => ({ key, count: cats[key].length, ...metaFor(key) }));
 
 const pad = (n) => String(n).padStart(2, "0");
 
@@ -50,6 +53,16 @@ const getAvatar = async (client, message, sender) => {
     return Buffer.from(await res.arrayBuffer());
   } catch {
     return null;
+  }
+};
+
+const toDataUri = async (buf) => {
+  if (!buf?.length) return "";
+  try {
+    const out = await sharp(buf).resize(160, 160, { fit: "cover" }).jpeg({ quality: 70 }).toBuffer();
+    return `data:image/jpeg;base64,${out.toString("base64")}`;
+  } catch {
+    return "";
   }
 };
 
@@ -104,9 +117,85 @@ const menuButtons = () => {
   return buttons;
 };
 
+const sendButtons = async (client, sender, message, name, p) => {
+  try {
+    await client.sendInteractiveMessage(
+      sender,
+      {
+        text: `Halo *${name}*! Pilih menu di bawah.`,
+        footer: footerFor("main", p),
+        buttons: menuButtons()
+      },
+      { quoted: message }
+    );
+  } catch (err) {
+    logger.warn(`test: tombol gagal: ${err.message}`);
+  }
+};
+
+const sendImage = async (client, sender, message, view) => {
+  const image = await renderMenu({
+    greeting: view.greeting,
+    name: view.name,
+    level: view.level,
+    role: view.role,
+    roleIcon: view.roleIcon,
+    expPct: view.expPct,
+    expText: view.expText,
+    uptime: view.uptime,
+    clock: view.clock,
+    totalFitur: view.totalFitur,
+    totalUser: view.totalUser,
+    categories: view.categories.map((c) => ({ label: c.label, icon: c.icon, color: c.color })),
+    avatar: view.avatarBuf
+  });
+
+  await client.sendMessage(
+    sender,
+    { image, caption: `*${config.botName} Menu*  •  ${view.totalFitur} fitur` },
+    { quoted: message }
+  );
+};
+
+const sendCard = async (client, sender, view) => {
+  const html = card({
+    brand: config.botName,
+    eyebrow: `${config.botName} • menu`,
+    title: "",
+    icon: "grid",
+    greeting: view.greeting,
+    name: view.name,
+    role: view.role,
+    roleIcon: view.roleIcon,
+    avatar: view.avatarUri,
+    level: view.level,
+    expPct: view.expPct,
+    expText: view.expText,
+    a: "#7c3aed",
+    b: "#38bdf8",
+    tiles: [
+      { l: "Uptime", v: view.uptime, fa: "zap", hue: "#22c55e" },
+      { l: "Jam", v: view.clock, fa: "clock", hue: "#60a5fa" },
+      { l: "Fitur", v: `${view.totalFitur}`, fa: "grid", hue: "#a78bfa" },
+      { l: "User", v: `${view.totalUser}`, fa: "users", hue: "#f59e0b" }
+    ],
+    cats: view.categories.map((c) => ({
+      n: c.label,
+      d: `${c.count} fitur`,
+      cnt: c.count,
+      fa: c.icon,
+      cc: c.color
+    })),
+    foot: `${config.botName} • ${timeWIB()}`
+  });
+
+  return await sendRichHtml(client, sender, html, `Menu ${config.botName}`);
+};
+
 const execute = async (client, message, args, commands) => {
   const sender = message.key.remoteJid;
   const p = getPrefix(message);
+  const mode = String(args?.[0] || "").toLowerCase();
 
   const uid = getUserId(message);
   const user = uid ? db.getUser(uid, message.pushName || "Player") : {};
@@ -119,52 +208,48 @@ const execute = async (client, message, args, commands) => {
   const expNeeded = Number(user.expNeeded) || 100;
   const expPct = Math.max(0, Math.min(100, Math.round((exp / expNeeded) * 100)));
 
-  const [avatar, role] = await Promise.all([
+  const [avatarBuf, role] = await Promise.all([
     getAvatar(client, message, sender),
     getRole(client, message, sender)
   ]);
 
+  const view = {
+    greeting: greeting(),
+    name: user.name || message.pushName || "Player",
+    level: user.level ?? 0,
+    role: role.text,
+    roleIcon: role.icon,
+    expPct,
+    expText: `${exp.toLocaleString("id-ID")} / ${expNeeded.toLocaleString("id-ID")} EXP`,
+    uptime: formatUptime(process.uptime()),
+    clock: timeWIB(),
+    totalFitur: Object.keys(commands).length,
+    totalUser,
+    categories,
+    avatarBuf,
+    avatarUri: await toDataUri(avatarBuf)
+  };
+
+  const wantImage = mode === "img" || mode === "image";
+
+  if (!wantImage && config.richCard && supported(client)) {
+    try {
+      await sendCard(client, sender, view);
+      await sendButtons(client, sender, message, view.name, p);
+      logger.cmd(`test: rich card -> ${sender}`);
+      return;
+    } catch (err) {
+      logger.warn(`test: rich gagal, fallback gambar: ${err.message}`);
+    }
+  }
+
   try {
-    const image = await renderMenu({
-      greeting: greeting(),
-      name: user.name || message.pushName || "Player",
-      level: user.level ?? 0,
-      role: role.text,
-      roleIcon: role.icon,
-      expPct,
-      expText: `${exp.toLocaleString("id-ID")} / ${expNeeded.toLocaleString("id-ID")} EXP`,
-      uptime: formatUptime(process.uptime()),
-      clock: timeWIB(),
-      totalFitur: Object.keys(commands).length,
-      totalUser,
-      categories,
-      avatar
-    });
-
-    await client.sendMessage(
-      sender,
-      { image, caption: `*${config.botName} Menu*  •  ${Object.keys(commands).length} fitur` },
-      { quoted: message }
-    );
-
-    await client.sendInteractiveMessage(
-      sender,
-      {
-        text: `Halo *${user.name || message.pushName || "Player"}*! Pilih menu di bawah.`,
-        footer: footerFor("main", p),
-        buttons: menuButtons()
-      },
-      { quoted: message }
-    );
-
-    logger.cmd(`test: rich menu -> ${sender}`);
+    await sendImage(client, sender, message, view);
+    await sendButtons(client, sender, message, view.name, p);
+    logger.cmd(`test: image menu -> ${sender}`);
   } catch (err) {
     logger.error(`test menu: ${err.message}`);
-    await client.sendMessage(
-      sender,
-      { text: `❌ Gagal render menu: ${err.message}` },
-      { quoted: message }
-    );
+    await client.sendMessage(sender, { text: `❌ Gagal render menu: ${err.message}` }, { quoted: message });
   }
 };
 
@@ -172,7 +257,7 @@ module.exports = {
   name: "test",
   command: ["test"],
   category: "main",
-  description: "Tampilkan menu tampilan rich (gambar)",
+  description: "Tampilkan menu (rich HTML, fallback gambar). .test img = paksa gambar",
   visible: true,
   execute: execute
 };
