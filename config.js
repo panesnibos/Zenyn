@@ -18,6 +18,12 @@ module.exports = {
   ai: { premiumImages: true },
   ytsummarize: { premium: true, cooldownMs: 60000 },
   confess: { premium: true, cooldownMs: 300000, maxLen: 300 },
+  nokos: {
+    enabled: true, // butuh saldo AutoOrder owner setelah pembeli bayar QRIS
+    markup: { percent: 20, flat: 0 }, // harga jual = modal API + markup, dibulatkan ke atas
+    pollMs: 6000,
+    maxList: 25
+  },
   premiumPackages: {
     "7": { label: "7 Hari", price: 5000, days: 7 },
     "30": { label: "1 Bulan", price: 15000, days: 30 },

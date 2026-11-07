@@ -11,6 +11,7 @@ database/rpg/market.json
 database/notify/
 database/autopay.json
 database/addbot.json
+database/nokos.json
 
 database/lidmap.json
 

@@ -18,6 +18,7 @@ const { statusOf, commandCost, usesLimit } = require("./lib/rpglimit");
 const { startWatcher, stopWatcher } = require("./lib/quake");
 const autopay = require("./lib/autopay");
 const addbot = require("./lib/addbot");
+const nokos = require("./lib/nokos");
 
 const loadedEnv = loadEnv();
 if (loadedEnv.length) logger.info(`env dimuat: ${loadedEnv.join(", ")}`);
@@ -138,10 +139,12 @@ async function connectBot() {
         startWatcher(client);
         autopay.start(client);
         addbot.start(client);
+        nokos.start(client);
       } else if (connection === "close") {
         stopWatcher();
         autopay.stop();
         addbot.stop();
+        nokos.stop();
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const reason = lastDisconnect?.error?.message || lastDisconnect?.error?.output?.payload?.message;
         const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
