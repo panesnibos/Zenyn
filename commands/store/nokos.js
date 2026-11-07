@@ -15,6 +15,37 @@ const maxList = () => Math.max(5, Number(config.nokos?.maxList ?? 25));
 
 const offerPrice = (o) => nokos.sellPrice(o?.price);
 
+// urutan prioritas layanan populer di daftar awal
+const POPULAR = [
+  /whatsapp/i,
+  /telegram/i,
+  /instagram|threads/i,
+  /facebook/i,
+  /google|gmail|youtube/i,
+  /tiktok|douyin/i,
+  /twitter/i,
+  /discord/i,
+  /shopee/i,
+  /gojek|grab/i,
+  /netflix/i,
+  /spotify/i,
+  /apple/i,
+  /microsoft|outlook/i,
+  /line\b/i,
+  /amazon/i
+];
+
+const popularity = (s) => {
+  const name = String(s?.name || "");
+  const i = POPULAR.findIndex((re) => re.test(name));
+  return i === -1 ? POPULAR.length : i;
+};
+
+const sortServices = (list) =>
+  list.slice().sort(
+    (a, b) => popularity(a) - popularity(b) || String(a.name).localeCompare(String(b.name))
+  );
+
 const offerList = (offers) =>
   (Array.isArray(offers) ? offers : [])
     .filter((o) => o.available === undefined || Number(o.available) > 0)
@@ -101,7 +132,7 @@ const listServices = async (client, message, query, p) => {
     );
   }
 
-  const shown = found.slice(0, maxList());
+  const shown = sortServices(found).slice(0, maxList());
   const textList = shown
     .slice(0, 15)
     .map((s) => `• ${s.name} — id: ${s.id}`)
@@ -111,7 +142,7 @@ const listServices = async (client, message, query, p) => {
     "📱 *NOMOR VIRTUAL (OTP)*",
     "",
     `Ditemukan ${found.length} layanan${q ? ` untuk "${query}"` : ""}.`,
-    "Pilih layanan lewat tombol, atau ketik id-nya.",
+    "Pilih lewat tombol, atau cari: *" + p + "nokos <nama>*",
     "",
     textList,
     found.length > 15 ? `\n...dan ${found.length - 15} lainnya.` : null
