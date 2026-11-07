@@ -2,6 +2,12 @@ const logger = require("../../lib/logger");
 const { downloadMediaMessage } = require("@whiskeysockets/baileys");
 const pino = require("pino");
 const ai = require("../../lib/ai");
+const config = require("../../config");
+const { db } = require("../../lib/rpgdb");
+const { getUserId } = require("../../lib/rpgutil");
+const { isOwner } = require("../../lib/owner");
+const { statusOf } = require("../../lib/rpglimit");
+const { getPrefix } = require("../../lib/prefix");
 
 const MAX_ANSWER = 3500;
 const MAX_DOWNLOAD_BYTES = 20 * 1024 * 1024;
@@ -101,6 +107,21 @@ const execute = async (client, message, args) => {
 
     if (!found && !prompt) {
       return await client.sendMessage(sender, { text: USAGE }, { quoted: message });
+    }
+
+    if (config.ai?.premiumImages !== false && (isImageMode || isEditMode) && !isOwner(message)) {
+      const uid = getUserId(message);
+      const user = uid ? db.getUser(uid, message.pushName || "Player") : null;
+      if (!user || statusOf(user) === "User") {
+        const p = getPrefix(message);
+        return await client.sendMessage(
+          sender,
+          {
+            text: `🔒 *BUAT/EDIT GAMBAR = PREMIUM*\n\nMode teks tetap gratis (kena limit).\nBuat gambar AI: *${p}premium*`
+          },
+          { quoted: message }
+        );
+      }
     }
 
     if (!ai.isConfigured()) {

@@ -15,6 +15,9 @@ module.exports = {
     pollMs: 6000,
     maxPending: 3
   },
+  ai: { premiumImages: true },
+  ytsummarize: { premium: true, cooldownMs: 60000 },
+  confess: { premium: true, cooldownMs: 300000, maxLen: 300 },
   premiumPackages: {
     "7": { label: "7 Hari", price: 5000, days: 7 },
     "30": { label: "1 Bulan", price: 15000, days: 30 },
