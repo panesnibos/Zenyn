@@ -1,13 +1,14 @@
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers, normalizeMessageContent } = require("@whiskeysockets/baileys");
 const fs = require("fs");
 const path = require("path");
+const { AsyncLocalStorage } = require("async_hooks");
 const pino = require("pino");
 const { loadEnv } = require("./lib/env");
 const config = require("./config");
 const helper = require("baileys_helper");
 const { loadCommands } = require("./lib/commandLoader");
 const logger = require("./lib/logger");
-const { getTip } = require("./lib/tips");
+const { footerFor } = require("./lib/tips");
 const { setPrefix, getPrefixByJid } = require("./lib/prefix");
 const { recordFromKey, recordMapping, resolvePn } = require("./lib/lid");
 const { getSenderJids, normalizeNumber, getUserId, isPnJid, isLidJid } = require("./lib/rpgutil");
@@ -20,6 +21,14 @@ const loadedEnv = loadEnv();
 if (loadedEnv.length) logger.info(`env dimuat: ${loadedEnv.join(", ")}`);
 
 const commandsDir = path.join(__dirname, "commands");
+
+// Kategori command yang sedang jalan (aman dari race antar pesan/grup)
+const commandContext = new AsyncLocalStorage();
+
+const currentFooter = (jid) => {
+  const category = commandContext.getStore()?.category;
+  return footerFor(category, getPrefixByJid(jid));
+};
 
 const getMessageText = (msg) => {
   if (!msg) return "";
@@ -90,7 +99,7 @@ async function connectBot() {
       const { text, title, tip, interactiveButtons, buttons = [] } = messageConfig;
       const helperConfig = {
         text: text,
-        footer: tip || getTip(getPrefixByJid(jid)),
+        footer: tip || currentFooter(jid),
         interactiveButtons: interactiveButtons || buttons
       };
       if (title) helperConfig.title = title;
@@ -98,7 +107,7 @@ async function connectBot() {
     };
 
     client.sendButtons = async (jid, messageConfig, options = {}) => {
-      const footer = messageConfig.tip || getTip(getPrefixByJid(jid));
+      const footer = messageConfig.tip || currentFooter(jid);
       return await helper.sendButtons(client, jid, { ...messageConfig, footer }, options);
     };
 
@@ -228,7 +237,9 @@ async function connectBot() {
             let success = true;
             let finalCost = pending ? pending.cost : 0;
             try {
-              const result = await cmd.execute(client, message, args, commands, command.toLowerCase());
+              const result = await commandContext.run({ category: cmd.category, name: cmd.name }, () =>
+                cmd.execute(client, message, args, commands, command.toLowerCase())
+              );
               if (result === false) success = false;
               else if (result && typeof result === "object" && result.limitCost !== undefined) {
                 finalCost = commandCost(cmd, result.limitCost);
