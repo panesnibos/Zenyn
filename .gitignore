@@ -10,6 +10,7 @@ database/rpg/raid.json
 database/rpg/market.json
 database/notify/
 database/autopay.json
+database/addbot.json
 
 database/lidmap.json
 

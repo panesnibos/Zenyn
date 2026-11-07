@@ -21,6 +21,12 @@ module.exports = {
     "60": { label: "2 Bulan", price: 25000, days: 60 },
     "90": { label: "3 Bulan", price: 35000, days: 90 }
   },
+  addbotPackages: {
+    "30": { label: "1 Bulan", price: 10000, days: 30 },
+    "60": { label: "2 Bulan", price: 20000, days: 60 },
+    "90": { label: "3 Bulan", price: 27000, days: 90 },
+    perm: { label: "Permanent", price: 65000, days: 0 }
+  },
   bmkgBase: "https://data.bmkg.go.id/DataMKG/TEWS/",
   quakeNotify: true,
   quakePollMs: 60000,
