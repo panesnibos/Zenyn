@@ -19,7 +19,8 @@ const CAT_META = {
   rpg: { label: "RPG", icon: "target", color: "#a855f7" },
   tools: { label: "TOOLS", icon: "tool", color: "#10b981" },
   downloader: { label: "DOWNLOAD", icon: "download", color: "#f59e0b" },
-  owner: { label: "OWNER", icon: "settings", color: "#ef4444" }
+  owner: { label: "OWNER", icon: "settings", color: "#ef4444" },
+  premium: { label: "PREMIUM", icon: "crown", color: "#f59e0b" }
 };
 
 const metaFor = (key) =>
