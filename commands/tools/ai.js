@@ -144,13 +144,14 @@ const execute = async (client, message, args) => {
       const result = await ai.generateImage({ prompt, media: isEditMode ? media : null });
 
       const note = result.text ? `\n\n_${result.text.slice(0, 300)}_` : "";
+      const via = result.provider === "pollinations" ? "\n\n_via Pollinations (kuota Gemini habis)_" : "";
       await client.sendMessage(
         sender,
-        { image: result.buffer, caption: `🎨 ${prompt}${note}` },
+        { image: result.buffer, caption: `🎨 ${prompt}${note}${via}` },
         { quoted: message }
       );
 
-      logger.info(`ai image: ${sender} mode=${isEditMode ? "edit" : "img"}`);
+      logger.info(`ai image: ${sender} mode=${isEditMode ? "edit" : "img"} provider=${result.provider || "gemini"}`);
       return { limitCost: IMAGE_LIMIT };
     }
 

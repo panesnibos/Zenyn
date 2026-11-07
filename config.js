@@ -14,6 +14,9 @@ module.exports = {
   aiModel: "gemini-3.5-flash",
   aiImageModel: "gemini-2.5-flash-image",
   aiImageFallbackModels: ["gemini-3.1-flash-image", "gemini-3-pro-image"],
+  aiImageFallbackProvider: "pollinations",
+  aiImageFallbackModel: "flux",
+  aiImageFallbackBase: "https://image.pollinations.ai/prompt",
   aiFallbackModels: ["gemini-3-flash-preview", "gemini-3.8-flash"],
   aiApiBase: "https://generativelanguage.googleapis.com/v1beta/models",
   aiInteractionsBase: "https://generativelanguage.googleapis.com/v1beta/interactions"
