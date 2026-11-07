@@ -1,4 +1,5 @@
 const logger = require("../../lib/logger");
+const config = require("../../config");
 const { getCommandsByCategory } = require("../../lib/commandLoader");
 const { isOwner } = require("../../lib/owner");
 const { getPrefix } = require("../../lib/prefix");
@@ -119,6 +120,16 @@ const execute = async (client, message, args, commands) => {
       })
     }
   ];
+
+  if (config.groupLink) {
+    buttons.push({
+      name: "cta_url",
+      buttonParamsJson: JSON.stringify({
+        display_text: "🔗 Join Group",
+        url: config.groupLink
+      })
+    });
+  }
 
   const messageConfig = {
     text: menuText,

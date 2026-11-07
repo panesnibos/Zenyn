@@ -182,8 +182,9 @@ async function connectBot() {
             const needsGroup = cmd.group === true || cmd.category === "rpg";
 
             if (needsGroup && !isGroup) {
+              const groupLine = config.groupLink ? `\n${config.groupLink}` : "";
               await client.sendMessage(sender, {
-                text: "❌ Fitur ini hanya bisa dipakai di grup \nhttps://chat.whatsapp.com/JjtVVD53f1HJ77gNrfMQHb"
+                text: `❌ Fitur ini hanya bisa dipakai di grup${groupLine}`
               }, { quoted: message });
               return true;
             }
