@@ -14,6 +14,7 @@ const { getSenderJids, normalizeNumber, getUserId, isPnJid, isLidJid } = require
 const { db } = require("./lib/rpgdb");
 const { isOwner } = require("./lib/owner");
 const { statusOf, commandCost, usesLimit } = require("./lib/rpglimit");
+const { startWatcher, stopWatcher } = require("./lib/quake");
 
 const loadedEnv = loadEnv();
 if (loadedEnv.length) logger.info(`env dimuat: ${loadedEnv.join(", ")}`);
@@ -123,7 +124,9 @@ async function connectBot() {
         logger.ok("Bot connected!");
         logger.kv("Phone", client.user.id);
         reconnectAttempts = 0;
+        startWatcher(client);
       } else if (connection === "close") {
+        stopWatcher();
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const reason = lastDisconnect?.error?.message || lastDisconnect?.error?.output?.payload?.message;
         const shouldReconnect = statusCode !== DisconnectReason.loggedOut;

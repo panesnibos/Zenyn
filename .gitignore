@@ -8,6 +8,7 @@ ex/
 database/rpg/users.json
 database/rpg/raid.json
 database/rpg/market.json
+database/notify/
 
 database/lidmap.json
 
