@@ -1,5 +1,5 @@
 module.exports = {
-  prefixes: ["!", "/", "-", "+", "."],
+  prefixes: ["!", "/", "-", "+", ".", "#"],
   botName: "Zenyn",
   database: "./database",
   session: "./session",
