@@ -6,6 +6,7 @@ const pino = require("pino");
 const { loadEnv } = require("./lib/env");
 const config = require("./config");
 const helper = require("baileys_helper");
+const { withMentions } = require("./lib/interactivepayload");
 const { loadCommands } = require("./lib/commandLoader");
 const logger = require("./lib/logger");
 const { footerFor } = require("./lib/tips");
@@ -105,7 +106,7 @@ async function connectBot() {
         interactiveButtons: interactiveButtons || buttons
       };
       if (title) helperConfig.title = title;
-      return await helper.sendInteractiveMessage(client, jid, helperConfig, options);
+      return await helper.sendInteractiveMessage(client, jid, withMentions(helperConfig, messageConfig.mentions), options);
     };
 
     client.sendButtons = async (jid, messageConfig, options = {}) => {
