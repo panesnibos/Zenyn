@@ -1,5 +1,6 @@
 const config = require("../../config");
 const logger = require("../../lib/logger");
+const addbot = require("../../lib/addbot");
 const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const { isOwner } = require("../../lib/owner");
@@ -31,6 +32,13 @@ const usage = (p) =>
     "Masa sewa habis → bot keluar sendiri."
   ].join("\n");
 
+const ownedBlock = (uid) => {
+  const mine = addbot.byBuyer(uid);
+  if (!mine.length) return "";
+  const lines = mine.map((r) => `• ${r.name || r.jid} - ${r.jid} - sisa ${addbot.remaining(r.until)}`);
+  return ["🤖 *GRUP SEWA KAMU*", ...lines, ""].join("\n");
+};
+
 const selectRows = (code) =>
   Object.entries(packages()).map(([key, v]) => ({
     id: `addbot ${code} ${key}`,
@@ -49,9 +57,10 @@ const execute = async (client, message, args) => {
     return await client.sendMessage(sender, { text: "❌ Tidak bisa mengidentifikasi pengguna." }, { quoted: message });
   }
 
+  const head = ownedBlock(uid);
   const code = parseCode(args?.[0] || "");
   if (!code) {
-    return await client.sendMessage(sender, { text: usage(p) }, { quoted: message });
+    return await client.sendMessage(sender, { text: `${head}${usage(p)}` }, { quoted: message });
   }
 
   const planKey = String(args?.[1] || "").trim();
@@ -62,7 +71,7 @@ const execute = async (client, message, args) => {
       await client.sendInteractiveMessage(
         sender,
         {
-          text: `🤖 *SEWA BOT*\n\nLink grup: \`${code}\`\n\nPilih durasi sewa:`,
+          text: `${head}🤖 *SEWA BOT*\n\nLink grup: \`${code}\`\n\nPilih durasi sewa:`,
           interactiveButtons: [
             {
               name: "single_select",
@@ -77,7 +86,7 @@ const execute = async (client, message, args) => {
       );
     } catch (err) {
       logger.warn(`addbot: tombol gagal: ${err.message}`);
-      await client.sendMessage(sender, { text: usage(p) }, { quoted: message });
+      await client.sendMessage(sender, { text: `${head}${usage(p)}` }, { quoted: message });
     }
     return;
   }
