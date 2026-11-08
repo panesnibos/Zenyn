@@ -154,7 +154,7 @@ module.exports = {
   name: "addbot",
   command: ["addbot", "sewabot"],
   category: "main",
-  description: "Sewa bot untuk grup via QRIS (1/2/3 bulan / permanent)",
+  description: "Sewa bot untuk grup via QRIS (mingguan/bulanan)",
   visible: true,
   execute
 };

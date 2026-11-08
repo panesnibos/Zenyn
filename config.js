@@ -22,16 +22,12 @@ module.exports = {
   broadcast: require("./setting/broadcast"),
   catur: require("./setting/catur"),
   premiumPackages: {
-    "7": { label: "7 Hari", price: 5000, days: 7 },
-    "30": { label: "1 Bulan", price: 15000, days: 30 },
-    "60": { label: "2 Bulan", price: 25000, days: 60 },
-    "90": { label: "3 Bulan", price: 35000, days: 90 }
+    "7": { label: "Seminggu", price: 2000, days: 7 },
+    "30": { label: "Sebulan", price: 5000, days: 30 }
   },
   addbotPackages: {
-    "30": { label: "1 Bulan", price: 10000, days: 30 },
-    "60": { label: "2 Bulan", price: 20000, days: 60 },
-    "90": { label: "3 Bulan", price: 27000, days: 90 },
-    perm: { label: "Permanent", price: 65000, days: 0 }
+    "7": { label: "Seminggu", price: 3000, days: 7 },
+    "30": { label: "Sebulan", price: 10000, days: 30 }
   },
   bmkgBase: "https://data.bmkg.go.id/DataMKG/TEWS/",
   quakeNotify: true,
