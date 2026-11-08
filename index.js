@@ -13,7 +13,6 @@ const { setPrefix, getPrefixByJid } = require("./lib/prefix");
 const { recordFromKey, recordMapping, resolvePn } = require("./lib/lid");
 const { getSenderJids, normalizeNumber, getUserId, isPnJid, isLidJid } = require("./lib/rpgutil");
 const { db } = require("./lib/rpgdb");
-const { isOwner } = require("./lib/owner");
 const { statusOf, commandCost, usesLimit } = require("./lib/rpglimit");
 const { startWatcher, stopWatcher } = require("./lib/quake");
 const autopay = require("./lib/autopay");
@@ -210,14 +209,14 @@ async function connectBot() {
               return true;
             }
 
-            if (cmd.category === "rpg" && !isOwner(message)) {
+            if (cmd.category === "rpg") {
               const uid = getUserId(message);
               if (uid) {
                 const user = db.getUser(uid, message.pushName || "Player");
                 if (!user.registered) {
                   const p = getPrefixByJid(sender);
                   await client.sendMessage(sender, {
-                    text: `🔒 *Registrasi diperlukan*\n\nFitur RPG hanya untuk user yang sudah terdaftar.\n\nKetik *${p}register nama* untuk mendaftar.`
+                    text: `🔒 *Registrasi diperlukan*\n\nFitur RPG hanya untuk user yang sudah terdaftar (owner, premium, dan donatur juga wajib register).\n\nKetik *${p}register nama* untuk mendaftar.`
                   }, { quoted: message });
                   return true;
                 }
