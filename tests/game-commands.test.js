@@ -28,7 +28,8 @@ const message = (uid = user.id, chat = "120363000000@g.us") => ({
 });
 const client = (sent = []) => ({
   sendMessage: async (jid, payload) => void sent.push(payload),
-  sendInteractiveMessage: async (jid, payload) => void sent.push(payload)
+  sendInteractiveMessage: async (jid, payload) => void sent.push(payload),
+  relayMessage: async (jid, payload) => void sent.push(payload)
 });
 
 const dino = () => loadMocked("commands/game/dino.js", { "../../lib/rpgdb": { db: dbMock } });
@@ -48,6 +49,27 @@ test("dino: metadata game + kartu canvas sudah dibuang", () => {
   assert.equal(cmd.visible, true);
   assert.deepEqual(cmd.command, ["dino"]);
   assert.equal(fs.existsSync(path.join(root, "lib/dinoui.js")), false);
+});
+
+test("dino: kartu scene statis (CSS, tanpa JS) berisi Score & Top Score", () => {
+  const { sceneCard } = require("../lib/dinocard");
+  const html = sceneCard({ score: 7, top: 21, round: 8, obstacle: "duck", secs: "4.2" });
+  assert.match(html, /Score:/);
+  assert.match(html, /Top Score:/);
+  assert.match(html, /dn-bird/);
+  assert.doesNotMatch(html, /<script/i, "kartu tidak boleh bergantung pada JS");
+  assert.doesNotMatch(html, /https?:\/\//);
+  assert.match(sceneCard({ obstacle: "jump" }), /dn-cactus/);
+});
+
+test("dino: kartu dikirim sebelum tombol aksi", async () => {
+  const cmd = dino();
+  const sent = [];
+  await cmd.execute(client(sent), message("628100000005"), []);
+  assert.equal(sent.length, 2, "kartu + pesan tombol");
+  assert.ok(sent[0].botForwardedMessage, "pesan pertama = kartu rich");
+  assert.match(JSON.stringify(sent[1]), /dino act/);
+  await cmd.execute(client(sent), message("628100000005"), ["stop"]);
 });
 
 test("dino: jawaban benar menaikkan skor, salah mengakhiri + simpan top", async () => {

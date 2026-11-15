@@ -2,8 +2,12 @@
 // Kartu HTML canvas tak dipakai: webview beberapa client (termasuk user bot ini)
 // tidak mengeksekusi JS kartu, jadi kanvas selalu kosong.
 // Top score per user disimpan di DB (user.dinoTop) -> siap untuk leaderboard.
+const config = require("../../config");
+const logger = require("../../lib/logger");
 const { getPrefix } = require("../../lib/prefix");
 const { db } = require("../../lib/rpgdb");
+const { sendRichHtml, supported } = require("../../lib/richsend");
+const { sceneCard } = require("../../lib/dinocard");
 const { guarded, reply, interactive, quick, token, identity, timedStore } = require("../../lib/featureutil");
 
 const games = timedStore(500);
@@ -38,6 +42,29 @@ const endGame = async (client, game, reason) => {
   await client.sendMessage(game.chat, { text: lines.join("\n") }, game.message ? { quoted: game.message } : {}).catch(() => {});
 };
 
+// Kartu rich statis (CSS, tanpa JS) + tombol aksi di chat.
+const sendScene = async (client, game, secs) => {
+  if (config.richCard === false || !supported(client)) return false;
+  try {
+    await sendRichHtml(
+      client,
+      game.chat,
+      sceneCard({
+        score: game.score,
+        top: Math.max(game.top, game.score),
+        round: game.score + 1,
+        obstacle: game.obstacle,
+        secs: secs.toFixed(1)
+      }),
+      `Zenyn Dino · ronde ${game.score + 1}`
+    );
+    return true;
+  } catch (err) {
+    logger.warn(`dino: kartu gagal (${err.message})`);
+    return false;
+  }
+};
+
 const ask = async (client, message, game) => {
   clearTimeout(game.timer);
   game.id = token();
@@ -45,15 +72,19 @@ const ask = async (client, message, game) => {
   game.message = message;
   const secs = Math.max(3.5, 9 - game.score * 0.4);
   games.set(game.key, game, Math.round(secs * 1000) + 20000);
-  await interactive(client, message, [
-    "🦖 *DINO RUN*",
-    "",
-    `Score: ${game.score} • Top Score: ${Math.max(game.top, game.score)}`,
-    "",
-    `🦖 ─ ─ ─ ─ ${CLEAR[game.obstacle]}`,
-    `Pilih *${ACT[game.obstacle]}* • sisa ${secs.toFixed(1)}s`,
-    "Salah pilih atau telat = selesai."
-  ].join("\n"), [
+  const richOk = await sendScene(client, game, secs);
+  const lines = richOk
+    ? [`Pilih *${ACT[game.obstacle]}* • sisa ${secs.toFixed(1)}s`, "Salah pilih atau telat = selesai."]
+    : [
+        "🦖 *DINO RUN*",
+        "",
+        `Score: ${game.score} • Top Score: ${Math.max(game.top, game.score)}`,
+        "",
+        `🦖 ─ ─ ─ ─ ${CLEAR[game.obstacle]}`,
+        `Pilih *${ACT[game.obstacle]}* • sisa ${secs.toFixed(1)}s`,
+        "Salah pilih atau telat = selesai."
+      ];
+  await interactive(client, message, lines.join("\n"), [
     quick("⬆️ Lompat", `dino act ${game.id} jump`),
     quick("⬇️ Merunduk", `dino act ${game.id} duck`),
     quick("🛑 Stop", "dino stop")
