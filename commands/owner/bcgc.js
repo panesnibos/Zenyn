@@ -7,34 +7,16 @@ const logger = require("../../lib/logger");
 const { isOwner } = require("../../lib/owner");
 const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
-const { TZ } = require("../../lib/stamp");
+const { stamp } = require("../../lib/stamp");
 
 const cfg = () => config.broadcast || {};
 const delayMs = () => Math.max(0, Number(cfg().delayMs ?? 15000));
-const adLabel = () => String(cfg().adLabel || "ADS");
 const buttonText = () => String(cfg().buttonText || "🔗 Link Group");
 const confirmTtlMs = () => Math.max(1000, Number(cfg().confirmTtlMs ?? 300000));
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// footer: ADS tahun bulan tanggal hari jam (WIB)
-const adFooter = (date = new Date()) => {
-  const parts = new Intl.DateTimeFormat("id-ID", {
-    timeZone: TZ,
-    year: "numeric",
-    month: "long",
-    day: "2-digit",
-    weekday: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false
-  }).formatToParts(date);
-  const get = (type) => parts.find((p) => p.type === type)?.value || "";
-  return `${adLabel()} ${get("year")} ${get("month")} ${get("day")} ${get("weekday")} ${get("hour")}:${get("minute")}`;
-};
-
-const buildText = (body, date = new Date()) =>
-  [String(body || "").trim(), "", adFooter(date)].join("\n");
+const buildText = (body) => String(body || "").trim();
 
 const urlButton = () =>
   config.groupLink
@@ -49,7 +31,10 @@ const urlButton = () =>
 const buildPayload = (body) => {
   const text = buildText(body);
   const buttons = urlButton();
-  return buttons.length ? { text, interactiveButtons: buttons } : { text: `${text}\n\n${config.groupLink || ""}`.trim() };
+  // waktu kirim masuk footer pesan (tip), bukan badan teks
+  return buttons.length
+    ? { text, tip: stamp(), interactiveButtons: buttons }
+    : { text: `${text}\n\n${stamp()}\n\n${config.groupLink || ""}`.trim() };
 };
 
 const groupJids = async (client) => {
@@ -70,7 +55,7 @@ const sendOne = async (client, jid, payload) => {
         // fallback: teks biasa tanpa tombol
         try {
           if (payload.interactiveButtons) {
-            await client.sendMessage(jid, { text: `${payload.text}\n\n${config.groupLink || ""}`.trim() });
+            await client.sendMessage(jid, { text: `${payload.text}\n\n${payload.tip || stamp()}\n\n${config.groupLink || ""}`.trim() });
             return true;
           }
         } catch (err2) {
@@ -115,6 +100,7 @@ const preview = async (client, sender, message, body, limit, p) => {
     "────────────────",
     previewText,
     "────────────────",
+    `Footer : ${stamp()}`,
     "",
     `Kirim  : *${p}bcgc go*`,
     `Batal  : *${p}bcgc batal*`,
@@ -195,7 +181,7 @@ const usage = (p) =>
   [
     "📢 *BROADCAST GRUP (OWNER)*",
     "",
-    "Kirim promosi ke semua grup dengan footer ADS + tombol link grup.",
+    "Kirim promosi ke semua grup + tombol link grup.",
     "",
     `• *${p}bcgc <teks>* — preview dulu`,
     `• *${p}bcgc go* — kirim sesuai preview`,
@@ -295,5 +281,5 @@ module.exports = {
   visible: true,
   execute,
   // internal untuk pengujian
-  _internal: { buildText, adFooter, buildPayload, runBroadcast, preview, pending, delayMs }
+  _internal: { buildText, stamp, buildPayload, runBroadcast, preview, pending, delayMs }
 };
