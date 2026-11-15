@@ -62,6 +62,19 @@ test("parseAction: JSON valid, fenced, dan sampah", () => {
   assert.equal(parseAction('Kita perlu {"bukan":"aksi"} lalu {"tool":"run","args":{"cmd":"git status"}}').tool, "run");
 });
 
+test("edit_file: ganti unik, tolak old_string ambigu", () => {
+  const { TOOLS } = agent()._internal;
+  const rel = "tests/tmp-edit-probe.js";
+  const abs = path.join(root, rel);
+  fs.writeFileSync(abs, "const a = 1;\nconst b = 1;\n");
+
+  assert.match(TOOLS.edit_file({ path: rel, old_string: "const a = 1;", new_string: "const a = 2;" }), /1 penggantian/);
+  assert.match(fs.readFileSync(abs, "utf8"), /const a = 2;/);
+  assert.throws(() => TOOLS.edit_file({ path: rel, old_string: "const ", new_string: "let " }), /muncul 2x/);
+  assert.throws(() => TOOLS.edit_file({ path: rel, old_string: "tidak ada", new_string: "x" }), /tidak ditemukan/);
+  fs.unlinkSync(abs);
+});
+
 test("grep: cari di repo, denylist tetap ditolak", () => {
   const { TOOLS } = agent()._internal;
   const hit = TOOLS.grep({ pattern: "retryNokos", dir: "lib" });
