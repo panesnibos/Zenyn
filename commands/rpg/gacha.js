@@ -46,27 +46,23 @@ const pickRandomByChance = (items) => {
 };
 
 const openCrate = (crate, id) => {
-  let results = [];
-  let totalGold = 0;
+  let gold = 0;
 
   const goldReward = crate.rewards.find((r) => r.type === "gold");
   if (goldReward) {
-    const gold = Math.floor(Math.random() * (goldReward.max - goldReward.min + 1)) + goldReward.min;
-    totalGold += gold;
+    gold = Math.floor(Math.random() * (goldReward.max - goldReward.min + 1)) + goldReward.min;
     db.addMoney(id, gold);
   }
 
   const itemRewards = crate.rewards.filter((r) => r.type !== "gold");
-  if (itemRewards.length > 0) {
-    const picked = pickRandomByChance(itemRewards);
-    db.addItem(id, { name: picked.name, emoji: picked.emoji, qty: picked.qty });
-    results.push(`${picked.emoji} ${picked.name} x${picked.qty}`);
-  } else {
-    results.push("😢 Tidak ada item");
-  }
+  if (!itemRewards.length) return { gold, item: null };
 
-  return { results, totalGold };
+  const picked = pickRandomByChance(itemRewards);
+  db.addItem(id, { name: picked.name, emoji: picked.emoji, qty: picked.qty });
+  return { gold, item: picked };
 };
+
+const MAX_OPEN = 10;
 
 const execute = async (client, message, args, commands, commandName) => {
   const sender = message.key.remoteJid;
@@ -95,7 +91,7 @@ const execute = async (client, message, args, commands, commandName) => {
       });
 
       return await client.sendInteractiveMessage(sender, {
-        text: `🀄 Ubah Nasibmu\n\n${buildCaption(user)}`,
+        text: `🀄 Ubah Nasibmu\n\n${buildCaption(user)}\n\nBuka: *${p}open <crate> <jumlah>* (contoh: ${p}open bronze-key 5)`,
         interactiveButtons: [
           {
             name: "single_select",
@@ -112,7 +108,7 @@ const execute = async (client, message, args, commands, commandName) => {
     const name = (args[0] || "").toLowerCase();
 
     if (!name) {
-      return await client.sendMessage(sender, { text: `Contoh: ${p}open bronze-key` }, { quoted: message });
+      return await client.sendMessage(sender, { text: `Contoh: ${p}open bronze-key 5` }, { quoted: message });
     }
 
     const crate = gachas[name];
@@ -125,12 +121,35 @@ const execute = async (client, message, args, commands, commandName) => {
       return await client.sendMessage(sender, { text: "Kamu tidak punya crate ini!" }, { quoted: message });
     }
 
-    db.removeItem(userId, crate.name, 1);
-    const { results, totalGold } = openCrate(crate, userId);
+    // jumlah buka: arg ke-2, dibatasi stok & MAX_OPEN
+    const want = Math.floor(Number(args[1]) || 1);
+    const qty = Math.min(Math.max(1, want), item.qty, MAX_OPEN);
+    const note =
+      want > qty
+        ? `\n\nℹ️ Cuma bisa buka ${qty} (${want > item.qty ? `stok ${item.qty}` : `maks ${MAX_OPEN}`}).`
+        : "";
 
-    let text = `🎁 Kamu membuka *${crate.name}*\n\n`;
+    let totalGold = 0;
+    const tally = new Map();
+    for (let i = 0; i < qty; i++) {
+      db.removeItem(userId, crate.name, 1);
+      const got = openCrate(crate, userId);
+      totalGold += got.gold;
+      if (got.item) {
+        const key = got.item.name.toLowerCase();
+        const prev = tally.get(key) || { emoji: got.item.emoji, name: got.item.name, qty: 0 };
+        prev.qty += got.item.qty;
+        tally.set(key, prev);
+      }
+    }
+
+    const results = tally.size
+      ? [...tally.values()].map((i) => `${i.emoji} ${i.name} x${i.qty}`)
+      : ["😢 Tidak ada item"];
+
+    let text = `🎁 Kamu membuka *${crate.name}*${qty > 1 ? ` x${qty}` : ""}\n\n`;
     if (totalGold > 0) text += `💰 Gold: +${totalGold}\n`;
-    text += `📦 Hasil:\n${results.join("\n")}`;
+    text += `📦 Hasil:\n${results.join("\n")}${note}`;
 
     return await client.sendMessage(sender, { text }, { quoted: message });
 
