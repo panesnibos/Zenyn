@@ -53,6 +53,8 @@ test("parseAction: JSON valid, fenced, dan sampah", () => {
   assert.equal(parseAction('```json\n{"tool":"read_file","args":{"path":"index.js"}}\n```').tool, "read_file");
   assert.equal(parseAction("maaf saya tidak bisa"), null);
   assert.equal(parseAction('{"rusak": '), null);
+  // model gratis sering menulis alasan dulu sebelum JSON
+  assert.equal(parseAction('Kita perlu {"bukan":"aksi"} lalu {"tool":"run","args":{"cmd":"git status"}}').tool, "run");
 });
 
 test("write_file: file repo lolos, .env ditolak", () => {
