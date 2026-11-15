@@ -3,36 +3,14 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const { createRequire } = require("node:module");
 
 const root = path.resolve(__dirname, "..");
-const loadMocked = (relative, mocks = {}) => {
-  const file = path.join(root, relative);
-  const nativeRequire = createRequire(file);
-  const mod = { exports: {} };
-  const compiled = vm.runInThisContext(`(function(require,module,exports,__dirname,__filename){\n${fs.readFileSync(file, "utf8")}\n})`, { filename: file });
-  compiled((name) => Object.hasOwn(mocks, name) ? mocks[name] : nativeRequire(name), mod, mod.exports, path.dirname(file), file);
-  return mod.exports;
-};
-
-const user = { id: "628100000001", name: "Pemain Uji", dinoTop: 0 };
-const dbMock = {
-  getUser: () => user,
-  saveUser: () => true,
-  updateUser: (id) => (id === user.id ? user : null)
-};
-const message = (uid = user.id, chat = "120363000000@g.us") => ({
+const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
+const message = (uid = "628100000001", chat = "120363000000@g.us") => ({
   key: { id: "mock", remoteJid: chat, participant: `${uid}@s.whatsapp.net` },
   canonicalUserId: uid, pushName: "Pemain Uji",
   message: { conversation: ".dino" }
 });
-const client = (sent = []) => ({
-  sendMessage: async (jid, payload) => void sent.push(payload),
-  sendInteractiveMessage: async (jid, payload) => void sent.push(payload),
-  relayMessage: async (jid, payload) => void sent.push(payload)
-});
-
-const dino = () => loadMocked("commands/game/dino.js", { "../../lib/rpgdb": { db: dbMock } });
 
 test("catur pindah ke kategori game", () => {
   assert.equal(fs.existsSync(path.join(root, "commands/fun/catur.js")), false);
@@ -43,67 +21,72 @@ test("catur pindah ke kategori game", () => {
   assert.equal(typeof catur.execute, "function");
 });
 
-test("dino: metadata game + kartu canvas sudah dibuang", () => {
-  const cmd = dino();
-  assert.equal(cmd.category, "game");
-  assert.equal(cmd.visible, true);
-  assert.deepEqual(cmd.command, ["dino"]);
-  assert.equal(fs.existsSync(path.join(root, "lib/dinoui.js")), false);
-});
+test("dino: metadata + kartu game self-contained tanpa canvas", () => {
+  const dino = require("../commands/game/dino");
+  assert.equal(dino.category, "game");
+  assert.equal(dino.visible, true);
+  assert.deepEqual(dino.command, ["dino"]);
+  assert.equal(typeof dino.execute, "function");
 
-test("dino: kartu scene statis (CSS, tanpa JS) berisi Score & Top Score", () => {
-  const { sceneCard } = require("../lib/dinocard");
-  const html = sceneCard({ score: 7, top: 21, round: 8, obstacle: "duck", secs: "4.2" });
+  assert.equal(fs.existsSync(path.join(root, "lib/dinocard.js")), false, "kartu statis sudah dibuang");
+  const { html } = require("../lib/dinogame");
   assert.match(html, /Score:/);
   assert.match(html, /Top Score:/);
-  assert.match(html, /dn-bird/);
-  assert.doesNotMatch(html, /<script/i, "kartu tidak boleh bergantung pada JS");
-  assert.doesNotMatch(html, /https?:\/\//);
-  assert.match(sceneCard({ obstacle: "jump" }), /dn-cactus/);
+  assert.match(html, /id="scene"/);
+  assert.match(html, /id="dino"/);
+  assert.doesNotMatch(html, /<canvas/i);
+  assert.doesNotMatch(html, /https?:\/\//, "kartu tidak boleh memuat resource luar");
 });
 
-test("dino: kartu dikirim sebelum tombol aksi", async () => {
-  const cmd = dino();
-  const sent = [];
-  await cmd.execute(client(sent), message("628100000005"), []);
-  assert.equal(sent.length, 2, "kartu + pesan tombol");
-  assert.ok(sent[0].botForwardedMessage, "pesan pertama = kartu rich");
-  assert.match(JSON.stringify(sent[1]), /dino act/);
-  await cmd.execute(client(sent), message("628100000005"), ["stop"]);
+test("dino: skrip kartu lolos parse dan tak bergantung pada emoji", () => {
+  const { html } = require("../lib/dinogame");
+  const script = html.slice(html.indexOf("<script>") + 8, html.indexOf("</script>"));
+  assert.ok(script.length > 2000);
+  assert.doesNotThrow(() => new vm.Script(script));
+  assert.doesNotMatch(script, /emoji|\\u\{|fillText/);
 });
 
-test("dino: jawaban benar menaikkan skor, salah mengakhiri + simpan top", async () => {
-  const cmd = dino();
-  const sent = [];
-  const msg = message();
-  const key = cmd._internal.keyOf(msg.key.remoteJid, user.id);
+test("dino: skrip kartu jalan tanpa DOM asli (loop + skor naik)", () => {
+  const { html } = require("../lib/dinogame");
+  const script = html.slice(html.indexOf("<script>") + 8, html.indexOf("</script>"));
+  const makeEl = (id) => {
+    const handlers = {};
+    return {
+      id, style: {}, className: "", textContent: "", innerHTML: "", value: "",
+      classList: { add() {}, remove() {}, contains: () => false },
+      addEventListener: (ev, fn) => { handlers[ev] = fn; },
+      appendChild() {}, setAttribute() {},
+      getBoundingClientRect: () => ({ width: 320, height: 170, top: 0, left: 0 }),
+      fire: (ev, arg) => handlers[ev]?.(arg)
+    };
+  };
+  const els = new Map();
+  let raf = null;
+  const sandbox = {
+    document: { getElementById: (id) => { if (!els.has(id)) els.set(id, makeEl(id)); return els.get(id); }, createElement: () => makeEl("i") },
+    window: { addEventListener() {}, onerror: null },
+    localStorage: { getItem: () => null, setItem() {} },
+    requestAnimationFrame: (cb) => { raf = cb; },
+    Number, String, Math, Array, Object, Date, console
+  };
+  sandbox.window.requestAnimationFrame = sandbox.requestAnimationFrame;
+  vm.createContext(sandbox);
+  assert.doesNotThrow(() => vm.runInContext(script, sandbox));
 
-  await cmd.execute(client(sent), msg, []);
-  const game = cmd._internal.games.get(key);
-  assert.ok(game, "sesi dibuat");
-  assert.equal(game.score, 0);
+  const dbgEl = els.get("dbg");
+  assert.match(dbgEl.textContent, /JS jalan/);
 
-  const round = cmd._internal.games.get(key);
-  const roundId = round.id;
-  await cmd.execute(client(sent), msg, ["act", roundId, round.obstacle]);
-  assert.equal(cmd._internal.games.get(key).score, 1, "skor naik setelah jawaban benar");
-  assert.notEqual(cmd._internal.games.get(key).id, roundId, "ronde baru, token baru");
-
-  const wrong = cmd._internal.games.get(key).obstacle === "jump" ? "duck" : "jump";
-  await cmd.execute(client(sent), msg, ["act", cmd._internal.games.get(key).id, wrong]);
-  assert.equal(cmd._internal.games.get(key), null, "sesi berakhir setelah salah");
-  assert.equal(user.dinoTop, 1, "top score tersimpan per user");
+  els.get("scene").fire("pointerdown", { preventDefault() {}, clientY: 10 });
+  for (let i = 1; i <= 240; i++) raf(i * 16);
+  assert.ok(Number(els.get("score").textContent) > 0, "skor bertambah setelah loop berjalan");
 });
 
-test("dino: token lama tidak bisa dipakai ulang", async () => {
-  const cmd = dino();
-  const msg = message("628100000009");
+test("dino: kirim kartu, fallback teks kalau client tak dukung", async () => {
+  const dino = require("../commands/game/dino");
   const sent = [];
-  const key = cmd._internal.keyOf(msg.key.remoteJid, "628100000009");
-  await cmd.execute(client(sent), msg, []);
-  const stale = cmd._internal.games.get(key).id;
-  await cmd.execute(client(sent), msg, ["act", stale, cmd._internal.games.get(key).obstacle]);
-  assert.notEqual(cmd._internal.games.get(key).id, stale, "ronde baru, token baru");
-  await cmd.execute(client(sent), msg, ["act", stale, "jump"]);
-  assert.match(sent.at(-1).text, /kedaluwarsa/);
+  const sendMessage = async (jid, payload) => void sent.push(payload);
+  await dino.execute({ relayMessage: async () => {}, sendMessage }, message(), []);
+  assert.equal(sent.length, 0, "client dengan relayMessage tidak perlu fallback");
+  await dino.execute({ sendMessage }, message(), []);
+  assert.match(sent.at(-1).text, /Kartu game/);
 });
