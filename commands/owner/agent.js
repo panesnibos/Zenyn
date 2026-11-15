@@ -38,6 +38,8 @@ const TOOLS_TEXT = (p) =>
     "",
     "• `list_files {dir,limit}` — daftar file repo",
     "• `read_file {path,offset,limit}` — baca file (maks 400 baris)",
+    "• `grep {pattern,dir,limit}` — cari teks di repo",
+    "• `edit_file {path,old_string,new_string}` — ganti satu potongan teks (untuk file lama)",
     "• `write_file {path,content}` — tulis/timpa (wajib lolos node --check)",
     "• `run {cmd}` — hanya `node --check`, `node --test`, `git status/diff/log/show/add/commit`",
     "",

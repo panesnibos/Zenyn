@@ -117,7 +117,7 @@ const execute = async (client, message, args, commands) => {
     {
       name: "single_select",
       buttonParamsJson: JSON.stringify({
-        title: "Buka Menu",
+        title: "Menu Utama",
         sections
       })
     }

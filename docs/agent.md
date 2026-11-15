@@ -45,8 +45,12 @@ Dev agent (LLM) yang bisa membuat, mengubah, dan memperbaiki fitur bot langsung 
 |---|---|---|
 | `list_files` | `{dir, limit}` | daftar file repo |
 | `read_file` | `{path, offset, limit}` | baca file, maks 400 baris |
+| `grep` | `{pattern, dir, limit}` | cari teks di repo |
+| `edit_file` | `{path, old_string, new_string}` | ganti satu potongan teks (wajib `old_string` unik) |
 | `write_file` | `{path, content}` | tulis/timpa file |
 | `run` | `{cmd}` | command whitelist |
+
+File yang sudah ada wajib `read_file` dulu sebelum `write_file`/`edit_file`, supaya model tidak menimpa dengan versi karangan.
 
 ## Batasan
 
