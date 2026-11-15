@@ -1,4 +1,4 @@
-// commands/fun/catur.js — main catur lewat kartu rich WhatsApp.
+// commands/game/catur.js — main catur lewat kartu rich WhatsApp.
 // Papan = kartu rich (tampilan). Langkah bisa DIKLIK lewat daftar bidak/tujuan,
 // atau diketik: .catur e2e4
 const logger = require("../../lib/logger");
@@ -452,7 +452,7 @@ const usage = (p) =>
 module.exports = {
   name: "catur",
   command: ["catur", "chess", "caturs"],
-  category: "fun",
+  category: "game",
   description: "Main catur (kartu game interaktif + mode chat)",
   visible: true,
   execute,
