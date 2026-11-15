@@ -36,6 +36,29 @@ const intro = (p, user) =>
     `Pilih tombol di bawah atau ketik *${p}premium <kode>* (contoh: ${p}premium 30).`
   ].join("\n");
 
+const BENEFITS = [
+  ["♾️", "Limit harian ∞", "Command tools & downloader tanpa batas harian."],
+  ["🛠️", "Semua tools terbuka", "Semua fitur kategori tools bisa dipakai penuh."],
+  ["📥", "Semua downloader", "YouTube, TikTok, Instagram, dan lainnya tanpa limit."],
+  ["⛏️", "Cooldown RPG lebih pendek", "Gather 25s→15s, battle, raid, dungeon, duel, pet train juga lebih cepat."],
+  ["🖼️", "AI gambar premium", "Generate gambar AI pakai model premium."],
+  ["📝", "Ringkas YouTube", "Fitur ytsummarize terbuka untuk premium."],
+  ["🤫", "Confess premium", "Kirim confess anonim tanpa batas ketat."],
+  ["⚡", "Prioritas respon", "Command premium diproses lebih dulu."]
+];
+
+const benefitText = (p) =>
+  [
+    `👑 *BENEFIT PREMIUM ${config.botName}*`,
+    "",
+    ...BENEFITS.map(([emoji, title, desc]) => `${emoji} *${title}*\n${desc}`),
+    "",
+    "*Paket tersedia:*",
+    ...Object.entries(packages()).map(([, v]) => `• ${v.label} — ${rp(v.price)}`),
+    "",
+    `Beli: *${p}premium <kode>* (contoh: ${p}premium 30)`
+  ].join("\n");
+
 const selectRows = () =>
   Object.entries(packages()).map(([key, v]) => ({
     id: `premium ${key}`,
@@ -72,6 +95,10 @@ const execute = async (client, message, args) => {
                 title: "Pilih Paket Premium",
                 sections: [{ title: "Paket Premium", rows: selectRows() }]
               })
+            },
+            {
+              name: "quick_reply",
+              buttonParamsJson: JSON.stringify({ display_text: "More Benefit", id: "premium benefit" })
             }
           ]
         },
@@ -82,6 +109,10 @@ const execute = async (client, message, args) => {
       await client.sendMessage(sender, { text }, { quoted: message });
     }
     return;
+  }
+
+  if (key.toLowerCase() === "benefit") {
+    return await client.sendMessage(sender, { text: benefitText(p) }, { quoted: message });
   }
 
   const pkg = pkgs[key];
