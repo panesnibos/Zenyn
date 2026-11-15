@@ -34,7 +34,7 @@ const adFooter = (date = new Date()) => {
 };
 
 const buildText = (body, date = new Date()) =>
-  ["*IZIN PROMOSI*", "", String(body || "").trim(), "", adFooter(date)].join("\n");
+  [String(body || "").trim(), "", adFooter(date)].join("\n");
 
 const urlButton = () =>
   config.groupLink
