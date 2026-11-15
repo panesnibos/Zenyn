@@ -4,8 +4,10 @@ const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const { findItemDef } = require("../../lib/rpgitems");
 const { randInt } = require("../../lib/rpgcombat");
+const { cd } = require("../../lib/rpglimit");
 
-const COOLDOWN = 45000;
+const COOLDOWN = 25000;
+const COOLDOWN_PREMIUM = 15000;
 
 const SPOTS = {
   fish: { label: "Memancing", main: "fish", emoji: "🎣" },
@@ -31,13 +33,14 @@ const execute = async (client, message, args, commands, commandName) => {
 
     if (!spot) {
       return await client.sendMessage(sender, {
-        text: `🌿 *GATHER*\n\nPilih lokasi:\n${p}gather fish\n${p}gather mine\n${p}gather chop\n${p}gather herb\n\nCooldown: 45 detik`
+        text: `🌿 *GATHER*\n\nPilih lokasi:\n${p}gather fish\n${p}gather mine\n${p}gather chop\n${p}gather herb\n\nCooldown: 25 detik (premium 15 detik)`
       }, { quoted: message });
     }
 
     const now = Date.now();
-    if (user.lastGather && now - user.lastGather < COOLDOWN) {
-      const sisa = Math.ceil((COOLDOWN - (now - user.lastGather)) / 1000);
+    const cdGather = cd(user, COOLDOWN, COOLDOWN_PREMIUM);
+    if (user.lastGather && now - user.lastGather < cdGather) {
+      const sisa = Math.ceil((cdGather - (now - user.lastGather)) / 1000);
       return await client.sendMessage(sender, { text: `⏳ Kamu masih lelah. Coba lagi ${sisa} detik.` }, { quoted: message });
     }
 

@@ -5,9 +5,11 @@ const { getUserId, makeBar } = require("../../lib/rpgutil");
 const { randInt, equipmentDrop } = require("../../lib/rpgcombat");
 const { findItemDef } = require("../../lib/rpgitems");
 const { readJson, writeJson } = require("../../lib/rpgjson");
+const { cd } = require("../../lib/rpglimit");
 
 const FILE = path.join(__dirname, "../../database/rpg/raid.json");
 const ATTACK_CD = 5000;
+const ATTACK_CD_PREMIUM = 3000;
 const RESPAWN = 60000;
 
 const BOSSES = [
@@ -72,8 +74,9 @@ const execute = async (client, message, args, commands, commandName) => {
       }
 
       const now = Date.now();
-      if (user.lastRaid && now - user.lastRaid < ATTACK_CD) {
-        const sisa = Math.ceil((ATTACK_CD - (now - user.lastRaid)) / 1000);
+      const cdAttack = cd(user, ATTACK_CD, ATTACK_CD_PREMIUM);
+      if (user.lastRaid && now - user.lastRaid < cdAttack) {
+        const sisa = Math.ceil((cdAttack - (now - user.lastRaid)) / 1000);
         return await client.sendMessage(sender, { text: `⏳ Tunggu ${sisa} detik sebelum menyerang lagi.` }, { quoted: message });
       }
 
@@ -151,7 +154,7 @@ const execute = async (client, message, args, commands, commandName) => {
     return await client.sendButtons(sender, {
       title: "🐉 Raid Boss",
       text: bossText(state),
-      footer: "Cooldown serang 5 detik",
+      footer: `Cooldown serang ${cd(user, ATTACK_CD, ATTACK_CD_PREMIUM) / 1000} detik`,
       buttons: [
         { id: "raid attack", text: "⚔️ Serang" },
         { id: "rpg", text: "⬅️ Kembali" }

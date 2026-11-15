@@ -2,6 +2,7 @@ const logger = require("../../lib/logger");
 const { db } = require("../../lib/rpgdb");
 const { getUserId } = require("../../lib/rpgutil");
 const { randInt } = require("../../lib/rpgcombat");
+const { cd } = require("../../lib/rpglimit");
 
 const PETS = [
   { id: "slime", name: "Slime", emoji: "🟢" },
@@ -14,6 +15,7 @@ const PETS = [
 const ADOPT_COST = 1000;
 const TRAIN_COST = 300;
 const TRAIN_CD = 30000;
+const TRAIN_CD_PREMIUM = 18000;
 const MAX_LEVEL = 30;
 
 const expNeed = (level) => Math.floor(50 * level * 1.4);
@@ -61,8 +63,9 @@ const execute = async (client, message, args, commands, commandName) => {
       }
 
       const now = Date.now();
-      if (user.lastTrain && now - user.lastTrain < TRAIN_CD) {
-        const sisa = Math.ceil((TRAIN_CD - (now - user.lastTrain)) / 1000);
+      const cdTrain = cd(user, TRAIN_CD, TRAIN_CD_PREMIUM);
+      if (user.lastTrain && now - user.lastTrain < cdTrain) {
+        const sisa = Math.ceil((cdTrain - (now - user.lastTrain)) / 1000);
         return await client.sendMessage(sender, { text: `⏳ Pet masih lelah. Coba lagi ${sisa} detik.` }, { quoted: message });
       }
 
@@ -101,7 +104,7 @@ const execute = async (client, message, args, commands, commandName) => {
 
     const text = `🐾 *PET*\n\n${petText(user.pet)}\n\n` +
       (user.pet
-        ? `Latih: *pet train* (${TRAIN_COST} gold)\nCooldown: 30 detik`
+        ? `Latih: *pet train* (${TRAIN_COST} gold)\nCooldown: ${cd(user, TRAIN_CD, TRAIN_CD_PREMIUM) / 1000} detik`
         : `Adopsi: *pet adopt* (${ADOPT_COST} gold)`);
 
     return await client.sendButtons(sender, {

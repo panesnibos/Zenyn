@@ -4,6 +4,7 @@ const path = require("path");
 const { db } = require("../../lib/rpgdb");
 const { getUserId, makeBar } = require("../../lib/rpgutil");
 const { simulateFight, equipmentDrop, randInt } = require("../../lib/rpgcombat");
+const { cd } = require("../../lib/rpglimit");
 
 let monsters = {};
 try {
@@ -13,8 +14,11 @@ try {
 }
 
 const COOLDOWN = 2600;
+const COOLDOWN_PREMIUM = 1500;
 const DEATH_COOLDOWN = 20000;
+const DEATH_COOLDOWN_PREMIUM = 12000;
 const SKILL_COOLDOWN = 12000;
+const SKILL_COOLDOWN_PREMIUM = 8000;
 
 const MODES = {
   attack: { label: "⚔️ Attack", desc: "Serangan normal" },
@@ -59,14 +63,16 @@ const execute = async (client, message, args, commands) => {
 
   const user = db.getUser(userId, message.pushName || "Player");
   const now = Date.now();
+  const cdBattle = cd(user, COOLDOWN, COOLDOWN_PREMIUM);
+  const cdDeath = cd(user, DEATH_COOLDOWN, DEATH_COOLDOWN_PREMIUM);
 
-  if (user.lastDeath && now - user.lastDeath < DEATH_COOLDOWN) {
-    const sisa = Math.ceil((DEATH_COOLDOWN - (now - user.lastDeath)) / 1000);
+  if (user.lastDeath && now - user.lastDeath < cdDeath) {
+    const sisa = Math.ceil((cdDeath - (now - user.lastDeath)) / 1000);
     return await client.sendMessage(sender, { text: `Kamu mati dipertarungan\n\n⏳ Istirahat ${sisa} detik` }, { quoted: message });
   }
 
-  if (user.lastBattle && now - user.lastBattle < COOLDOWN) {
-    const sisa = Math.ceil((COOLDOWN - (now - user.lastBattle)) / 1000);
+  if (user.lastBattle && now - user.lastBattle < cdBattle) {
+    const sisa = Math.ceil((cdBattle - (now - user.lastBattle)) / 1000);
     return await client.sendMessage(sender, { text: `Kamu masih lelah\n\n⏳ Istirahat ${sisa} detik` }, { quoted: message });
   }
 
@@ -90,7 +96,7 @@ const execute = async (client, message, args, commands) => {
         `⚔️ ATK: ${stats.atk} | 🛡 DEF: ${stats.def}\n` +
         `✨ Gold bonus: +${Math.round(stats.goldBonus * 100)}%\n\n` +
         `Pilih aksi tempur:\n${Object.values(MODES).map((m) => `${m.label} — ${m.desc}`).join("\n")}`,
-      footer: `Cooldown ${COOLDOWN / 1000} detik`,
+      footer: `Cooldown ${cdBattle / 1000} detik`,
       buttons: [
         { id: "battle attack", text: "⚔️ Attack" },
         { id: "battle skill", text: "✨ Skill" },
@@ -99,8 +105,10 @@ const execute = async (client, message, args, commands) => {
     }, { quoted: message });
   }
 
-  if (mode === "skill" && user.lastSkill && now - user.lastSkill < SKILL_COOLDOWN) {
-    const sisa = Math.ceil((SKILL_COOLDOWN - (now - user.lastSkill)) / 1000);
+  const cdSkill = cd(user, SKILL_COOLDOWN, SKILL_COOLDOWN_PREMIUM);
+
+  if (mode === "skill" && user.lastSkill && now - user.lastSkill < cdSkill) {
+    const sisa = Math.ceil((cdSkill - (now - user.lastSkill)) / 1000);
     return await client.sendMessage(sender, { text: `✨ Skill masih cooldown ${sisa} detik.` }, { quoted: message });
   }
 
@@ -198,7 +206,7 @@ const execute = async (client, message, args, commands) => {
         u.lastDeath = now;
         u.stats.deaths += 1;
       });
-      text += `\n\n💀 KALAH\nCooldown 20 detik`;
+      text += `\n\n💀 KALAH\nCooldown ${cdDeath / 1000} detik`;
     }
 
     await client.sendMessage(sender, { text }, { quoted: message });

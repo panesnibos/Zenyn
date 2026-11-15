@@ -3,10 +3,12 @@ const { db } = require("../../lib/rpgdb");
 const { getUserId, resolveTarget } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const { simulatePvP } = require("../../lib/rpgcombat");
+const { cd } = require("../../lib/rpglimit");
 
 const pending = new Map();
 const EXPIRE = 60000;
 const COOLDOWN = 10000;
+const COOLDOWN_PREMIUM = 6000;
 const K = 32;
 
 const expected = (a, b) => 1 / (1 + Math.pow(10, (b - a) / 400));
@@ -119,8 +121,9 @@ const execute = async (client, message, args, commands, commandName) => {
       return await client.sendMessage(sender, { text: "❌ Tidak bisa duel dengan diri sendiri." }, { quoted: message });
     }
 
-    if (user.lastDuel && Date.now() - user.lastDuel < COOLDOWN) {
-      const sisa = Math.ceil((COOLDOWN - (Date.now() - user.lastDuel)) / 1000);
+    const cdDuel = cd(user, COOLDOWN, COOLDOWN_PREMIUM);
+    if (user.lastDuel && Date.now() - user.lastDuel < cdDuel) {
+      const sisa = Math.ceil((cdDuel - (Date.now() - user.lastDuel)) / 1000);
       return await client.sendMessage(sender, { text: `⏳ Tunggu ${sisa} detik sebelum duel lagi.` }, { quoted: message });
     }
 

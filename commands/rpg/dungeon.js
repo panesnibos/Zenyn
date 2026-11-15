@@ -2,9 +2,11 @@ const logger = require("../../lib/logger");
 const { db } = require("../../lib/rpgdb");
 const { getUserId, makeBar } = require("../../lib/rpgutil");
 const { simulateFight, equipmentDrop, randInt } = require("../../lib/rpgcombat");
+const { cd } = require("../../lib/rpglimit");
 
 const MAX_FLOOR = 50;
 const COOLDOWN = 10000;
+const COOLDOWN_PREMIUM = 6000;
 
 const floorBoss = (floor) => ({
   name: `Dungeon Boss Lv.${floor}`,
@@ -34,8 +36,9 @@ const execute = async (client, message, args, commands, commandName) => {
       }
 
       const now = Date.now();
-      if (user.lastDungeon && now - user.lastDungeon < COOLDOWN) {
-        const sisa = Math.ceil((COOLDOWN - (now - user.lastDungeon)) / 1000);
+      const cdDungeon = cd(user, COOLDOWN, COOLDOWN_PREMIUM);
+      if (user.lastDungeon && now - user.lastDungeon < cdDungeon) {
+        const sisa = Math.ceil((cdDungeon - (now - user.lastDungeon)) / 1000);
         return await client.sendMessage(sender, { text: `⏳ Tunggu ${sisa} detik sebelum masuk dungeon lagi.` }, { quoted: message });
       }
 
@@ -105,7 +108,7 @@ const execute = async (client, message, args, commands, commandName) => {
     return await client.sendButtons(sender, {
       title: "🏰 Dungeon",
       text,
-      footer: `Cooldown ${COOLDOWN / 1000} detik`,
+      footer: `Cooldown ${cd(user, COOLDOWN, COOLDOWN_PREMIUM) / 1000} detik`,
       buttons: [
         { id: "dungeon fight attack", text: "⚔️ Attack" },
         { id: "dungeon fight skill", text: "✨ Skill" },
