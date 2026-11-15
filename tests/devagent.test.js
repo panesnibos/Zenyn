@@ -40,6 +40,11 @@ test("safePath: file rahasia & data diblokir", () => {
   assert.equal(safePath("lib/agent/llm.js").rel, "lib/agent/llm.js");
 });
 
+test("safePath: root repo sendiri boleh (list_files .)", () => {
+  assert.equal(safePath(".").rel, ".");
+  assert.equal(safePath("./").rel, ".");
+});
+
 test("checkRun: whitelist command", () => {
   assert.throws(() => checkRun(["rm", "-rf", "/"]), /tidak diizinkan/);
   assert.throws(() => checkRun(["git", "push", "origin", "main"]), /tidak diizinkan/);
