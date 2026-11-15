@@ -4,6 +4,8 @@ module.exports = {
   enabled: true, // butuh saldo AutoOrder owner setelah pembeli bayar QRIS
 
   pollMs: 6000, // interval pantau OTP (jangan < 6000, batas AutoOrder)
+  replaceAfterMs: 10 * 60000, // tunggu OTP 10 menit, lewat itu ganti nomor
+  maxReplace: 3, // nomor pengganti maksimal (nomor awal + 3)
   pageSize: 8, // produk per halaman (maks 9 + baris navigasi = 10 baris list)
 
   defaultSort: "pop", // pop (terlaris/rekomendasi) | cheap (termurah) | exp (termahal)
