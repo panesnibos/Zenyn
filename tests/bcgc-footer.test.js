@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { _internal } = require("../commands/owner/bcgc");
 
-const STAMP_RE = /^\d{4}-\d{2}-\d{2} \w+ \d{2}:\d{2}:\d{2} WIB$/;
+const STAMP_RE = /^Announcement \d{4}-\d{2}-\d{2} \w+ \d{2}:\d{2}:\d{2} WIB$/;
 
 test("buildText: tanpa label ADS dan tanpa timestamp", () => {
   const text = _internal.buildText("Promo bot murah");

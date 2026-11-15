@@ -18,6 +18,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const buildText = (body) => String(body || "").trim();
 
+const FOOTER_LABEL = "Announcement";
+const footerText = () => `${FOOTER_LABEL} ${stamp()}`;
+
 const urlButton = () =>
   config.groupLink
     ? [
@@ -33,8 +36,8 @@ const buildPayload = (body) => {
   const buttons = urlButton();
   // waktu kirim masuk footer pesan (tip), bukan badan teks
   return buttons.length
-    ? { text, tip: stamp(), interactiveButtons: buttons }
-    : { text: `${text}\n\n${stamp()}\n\n${config.groupLink || ""}`.trim() };
+    ? { text, tip: footerText(), interactiveButtons: buttons }
+    : { text: `${text}\n\n${footerText()}\n\n${config.groupLink || ""}`.trim() };
 };
 
 const groupJids = async (client) => {
@@ -55,7 +58,7 @@ const sendOne = async (client, jid, payload) => {
         // fallback: teks biasa tanpa tombol
         try {
           if (payload.interactiveButtons) {
-            await client.sendMessage(jid, { text: `${payload.text}\n\n${payload.tip || stamp()}\n\n${config.groupLink || ""}`.trim() });
+            await client.sendMessage(jid, { text: `${payload.text}\n\n${payload.tip || footerText()}\n\n${config.groupLink || ""}`.trim() });
             return true;
           }
         } catch (err2) {
@@ -100,7 +103,7 @@ const preview = async (client, sender, message, body, limit, p) => {
     "────────────────",
     previewText,
     "────────────────",
-    `Footer : ${stamp()}`,
+    `Footer : ${footerText()}`,
     "",
     `Kirim  : *${p}bcgc go*`,
     `Batal  : *${p}bcgc batal*`,
@@ -281,5 +284,5 @@ module.exports = {
   visible: true,
   execute,
   // internal untuk pengujian
-  _internal: { buildText, stamp, buildPayload, runBroadcast, preview, pending, delayMs }
+  _internal: { buildText, stamp, footerText, buildPayload, runBroadcast, preview, pending, delayMs }
 };
