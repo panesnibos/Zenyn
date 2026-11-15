@@ -38,12 +38,16 @@ test("dino: metadata + kartu game self-contained tanpa canvas", () => {
   assert.doesNotMatch(html, /https?:\/\//, "kartu tidak boleh memuat resource luar");
 });
 
-test("dino: skrip kartu lolos parse dan tak bergantung pada emoji", () => {
+test("dino: skrip kartu lolos parse dan tak bentrok nama global window", () => {
   const { html } = require("../lib/dinogame");
   const script = html.slice(html.indexOf("<script>") + 8, html.indexOf("</script>"));
   assert.ok(script.length > 2000);
   assert.doesNotThrow(() => new vm.Script(script));
   assert.doesNotMatch(script, /emoji|\\u\{|fillText/);
+  // `var top` di browser = window.top read-only -> TypeError dan seluruh skrip mati.
+  const reserved = ["top", "parent", "self", "window", "location", "document", "name", "status", "length", "frames", "closed", "origin", "history"];
+  const declared = [...script.matchAll(/^var ([A-Za-z_$][\w$]*)/gm)].map((m) => m[1]);
+  assert.deepEqual(declared.filter((v) => reserved.includes(v)), [], "nama variabel bentrok dengan properti window");
 });
 
 test("dino: skrip kartu jalan tanpa DOM asli (loop + skor naik)", () => {
@@ -64,12 +68,14 @@ test("dino: skrip kartu jalan tanpa DOM asli (loop + skor naik)", () => {
   let raf = null;
   const sandbox = {
     document: { getElementById: (id) => { if (!els.has(id)) els.set(id, makeEl(id)); return els.get(id); }, createElement: () => makeEl("i") },
-    window: { addEventListener() {}, onerror: null },
     localStorage: { getItem: () => null, setItem() {} },
     requestAnimationFrame: (cb) => { raf = cb; },
+    addEventListener() {},
     Number, String, Math, Array, Object, Date, console
   };
-  sandbox.window.requestAnimationFrame = sandbox.requestAnimationFrame;
+  // Tiru browser: global === window, dan window.top read-only.
+  sandbox.window = sandbox;
+  Object.defineProperty(sandbox, "top", { get: () => sandbox, configurable: false });
   vm.createContext(sandbox);
   assert.doesNotThrow(() => vm.runInContext(script, sandbox));
 
