@@ -62,6 +62,14 @@ test("parseAction: JSON valid, fenced, dan sampah", () => {
   assert.equal(parseAction('Kita perlu {"bukan":"aksi"} lalu {"tool":"run","args":{"cmd":"git status"}}').tool, "run");
 });
 
+test("grep: cari di repo, denylist tetap ditolak", () => {
+  const { TOOLS } = agent()._internal;
+  const hit = TOOLS.grep({ pattern: "retryNokos", dir: "lib" });
+  assert.match(hit, /lib\/autopay\.js:\d+/);
+  assert.throws(() => TOOLS.grep({ pattern: "AGENT_API_KEY", dir: ".env" }), /diblokir/);
+  assert.equal(TOOLS.grep({ pattern: "zzz_tidak_ada_zzz", dir: "lib" }), "(tidak ada yang cocok)");
+});
+
 test("needsRead: file lama wajib dibaca dulu sebelum ditimpa", () => {
   const { needsRead } = agent()._internal;
   assert.equal(needsRead({ rel: "commands/main/test.js", exists: true, read: new Set() }), true);
