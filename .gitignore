@@ -5,6 +5,7 @@ ex/
 
 .bot.lock
 .agent.lock
+.agent-state.json
 
 database/rpg/users.json
 database/rpg/raid.json
