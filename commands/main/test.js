@@ -106,7 +106,7 @@ const menuButtons = () => {
   ];
 
   const buttons = [
-    { name: "single_select", buttonParamsJson: JSON.stringify({ title: "Buka Menu", sections }) }
+    { name: "single_select", buttonParamsJson: JSON.stringify({ title: "Menu Utama", sections }) }
   ];
 
   if (config.groupLink) {
