@@ -34,6 +34,10 @@ test("dino: metadata + kartu game self-contained tanpa canvas", () => {
   assert.match(html, /Top Score:/);
   assert.match(html, /id="scene"/);
   assert.match(html, /id="dino"/);
+  assert.match(html, /id="padJump"/);
+  assert.match(html, /id="padDuck"/);
+  assert.match(html, /Lompat<\/button>/);
+  assert.match(html, /Merunduk<\/button>/);
   assert.doesNotMatch(html, /<canvas/i);
   assert.doesNotMatch(html, /https?:\/\//, "kartu tidak boleh memuat resource luar");
 });
@@ -66,12 +70,14 @@ test("dino: skrip kartu jalan tanpa DOM asli (loop + skor naik)", () => {
   };
   const els = new Map();
   let raf = null;
+  const fixedMath = Object.create(Math);
+  fixedMath.random = () => 0.9; // selalu kaktus, tak ada burung acak
   const sandbox = {
     document: { getElementById: (id) => { if (!els.has(id)) els.set(id, makeEl(id)); return els.get(id); }, createElement: () => makeEl("i") },
     localStorage: { getItem: () => null, setItem() {} },
     requestAnimationFrame: (cb) => { raf = cb; },
     addEventListener() {},
-    Number, String, Math, Array, Object, Date, console
+    Number, String, Math: fixedMath, Array, Object, Date, console
   };
   // Tiru browser: global === window, dan window.top read-only.
   sandbox.window = sandbox;
@@ -82,9 +88,21 @@ test("dino: skrip kartu jalan tanpa DOM asli (loop + skor naik)", () => {
   const dbgEl = els.get("dbg");
   assert.match(dbgEl.textContent, /JS jalan/);
 
-  els.get("scene").fire("pointerdown", { preventDefault() {}, clientY: 10 });
-  for (let i = 1; i <= 240; i++) raf(i * 16);
+  // Tombol Lompat di kartu benar-benar menaikkan dino.
+  const press = (id) => els.get(id).fire("pointerdown", { preventDefault() {} });
+  press("padJump");
+  for (let i = 1; i <= 10; i++) raf(i * 16);
+  assert.ok(parseFloat(els.get("dino").style.bottom) > 24, "tombol Lompat menaikkan dino");
   assert.ok(Number(els.get("score").textContent) > 0, "skor bertambah setelah loop berjalan");
+
+  // Tombol Merunduk menyusutkan dino selama ditahan (setelah mendarat).
+  for (let i = 11; i <= 40; i++) raf(i * 16);
+  els.get("padDuck").fire("pointerdown", { preventDefault() {} });
+  raf(41 * 16);
+  assert.match(els.get("dino").style.transform, /scaleY/, "tombol Merunduk menyusutkan dino");
+  els.get("padDuck").fire("pointerup");
+  raf(42 * 16);
+  assert.equal(els.get("dino").style.transform, "");
 });
 
 test("dino: kirim kartu, fallback teks kalau client tak dukung", async () => {
