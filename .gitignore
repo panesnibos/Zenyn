@@ -4,6 +4,7 @@ backup/
 ex/
 
 .bot.lock
+.agent.lock
 
 database/rpg/users.json
 database/rpg/raid.json
