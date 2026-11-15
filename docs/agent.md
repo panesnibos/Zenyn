@@ -1,30 +1,53 @@
 # Command `.agent`
 
-Command `.agent` menjalankan agent dev otomatis di dalam repo bot. Agent hanya boleh mengubah file lewat tool yang diizinkan dan dibatasi oleh *path jail*.
+Command `.agent` menjalankan dev agent (LLM) yang bisa membuat, mengubah, dan memperbaiki fitur bot langsung di repo. Khusus owner (`isOwner`).
 
 ## Contoh perintah
 
 ```
-.agent tambahkan command ping di commands/general/ping.js
-.agent perbaiki typo di lib/helper.js
-.agent --deploy buat tests/agent.test.js untuk validasi path jail
+.agent buatin fitur cuaca pakai wttr.in
+.agent update fitur premium: tambah paket 90 hari
+.agent fix bcgc footer salah tanggal
+.agent --deploy fix typo di lib/rpglimit.js
 ```
 
-- Tanpa flag: agent hanya menulis/mengubah file dan menjalankan pengecekan syntax.
-- `--deploy`: setelah perubahan selesai, agent boleh menjalankan tes (`node --test`) dan melakukan `git add` + `git commit` untuk hasil kerjanya.
+- Tanpa flag: agent menulis file + cek syntax + commit. Bot **tidak** di-restart.
+- `--deploy`: sama seperti di atas, ditambah `git push origin main` lalu bot restart otomatis.
 
-## Mode `--deploy`
+## Alur kerja
 
-1. Agent menyelesaikan semua perubahan file.
-2. Syntax tiap file `.js` yang ditulis otomatis dicek (`node --check`).
-3. Jika ada tes terkait, dijalankan dengan `node --test <file>`.
-4. Bila semua lolos, perubahan di-commit dengan pesan ringkas.
-5. Jika gagal, agent wajib memperbaiki atau melaporkan error tanpa commit.
+1. Repo wajib bersih; kalau ada perubahan belum di-commit, agent menolak jalan (rollback butuh titik aman).
+2. Agent loop maks `AGENT_MAX_STEPS` langkah (default 12) dalam batas `AGENT_DEADLINE_MS` (default 180s).
+3. Tiap balasan model harus satu objek JSON: `{"tool":"...","args":{...}}` atau `{"done":true,"summary":"..."}`.
+4. Setiap file `.js` yang ditulis langsung diuji `node --check`; gagal → file dipulihkan dan error dikirim balik ke model.
+5. Setelah loop: semua file `.js` yang berubah dicek ulang. Kalau ada yang rusak, seluruh perubahan di-rollback (`git reset --hard HEAD`).
+6. Tes yang ikut berubah (`tests/*.js`) dijalankan dengan `node --test`.
+7. Kalau ada perubahan valid: `git add -A` + `git commit`. Dengan `--deploy` lanjut `git push` + `pm2 restart`.
+
+## Tool
+
+| Tool | Args | Isi |
+|---|---|---|
+| `list_files` | `{dir, limit}` | daftar file repo |
+| `read_file` | `{path, offset, limit}` | baca file, maks 400 baris |
+| `write_file` | `{path, content}` | tulis/timpa file |
+| `run` | `{cmd}` | command whitelist |
 
 ## Batasan
 
-- **Path jail**: agent hanya boleh membaca/menulis di dalam root repo. Path absolut, `..`, atau keluar dari root ditolak.
-- **Direktori terlarang**: `.env`, `session/`, `database/`, `node_modules/` tidak boleh disentuh.
-- **Whitelist command**: hanya `node --check`, `node --test`, dan `git status|diff|log|show|add|commit` yang diizinkan. Perintah shell lain ditolak.
-- **Rollback**: setiap perubahan dicatat. Jika terjadi error atau tes gagal, agent mengembalikan file ke kondisi sebelumnya (restore dari backup/`git checkout -- <file>`) sebelum melaporkan kegagalan.
-- **Satu permintaan = satu fitur**: agent tidak melakukan refactor besar atau mengubah file di luar permintaan.
+- **Path jail**: hanya di dalam root repo. `..`, path absolut, dan karakter shell ditolak.
+- **Diblokir**: `.env`, `session/`, `database/`, `node_modules/`, `.git/`, `backup/`, `ex/`.
+- **Whitelist command**: `node --check <file>`, `node --test <file...>`, `git status|diff|log|show|add|commit|rev-parse`. Tanpa shell (`shell: false`), operator `; | & > < $ \`` ditolak.
+- **Satu agent sekaligus**: lock `.agent.lock`, run kedua ditolak.
+- **Satu permintaan = satu fitur**: tidak untuk refactor besar.
+
+## Env
+
+```
+AGENT_API_KEY=sk-...
+AGENT_MODEL=prem/deepseek-v4.1-flash-1017
+AGENT_MODEL_FALLBACK=ovh-free/gpt-oss-120b
+AGENT_BASE=https://free.ai.id/v1
+AGENT_MAX_STEPS=12
+AGENT_DEADLINE_MS=180000
+```
