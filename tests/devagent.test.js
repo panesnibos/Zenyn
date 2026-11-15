@@ -62,6 +62,13 @@ test("parseAction: JSON valid, fenced, dan sampah", () => {
   assert.equal(parseAction('Kita perlu {"bukan":"aksi"} lalu {"tool":"run","args":{"cmd":"git status"}}').tool, "run");
 });
 
+test("needsRead: file lama wajib dibaca dulu sebelum ditimpa", () => {
+  const { needsRead } = agent()._internal;
+  assert.equal(needsRead({ rel: "commands/main/test.js", exists: true, read: new Set() }), true);
+  assert.equal(needsRead({ rel: "commands/main/test.js", exists: true, read: new Set(["commands/main/test.js"]) }), false);
+  assert.equal(needsRead({ rel: "docs/new.md", exists: false, read: new Set() }), false);
+});
+
 test("write_file: file repo lolos, .env ditolak", () => {
   const probe = path.join(root, "tests", "tmp-agent-probe.js");
   const out = TOOLS.write_file({ path: "tests/tmp-agent-probe.js", content: "module.exports = 1;\n" });
