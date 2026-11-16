@@ -19,6 +19,7 @@ const { startWatcher, stopWatcher } = require("./lib/quake");
 const autopay = require("./lib/autopay");
 const addbot = require("./lib/addbot");
 const nokos = require("./lib/nokos");
+const gwmonitor = require("./lib/gwmonitor");
 
 const loadedEnv = loadEnv();
 if (loadedEnv.length) logger.info(`env dimuat: ${loadedEnv.join(", ")}`);
@@ -140,11 +141,13 @@ async function connectBot() {
         autopay.start(client);
         addbot.start(client);
         nokos.start(client);
+        gwmonitor.start(client);
       } else if (connection === "close") {
         stopWatcher();
         autopay.stop();
         addbot.stop();
         nokos.stop();
+        gwmonitor.stop();
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const reason = lastDisconnect?.error?.message || lastDisconnect?.error?.output?.payload?.message;
         const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
