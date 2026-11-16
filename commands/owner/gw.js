@@ -69,6 +69,34 @@ const upstreamsText = (u) => {
   return ["🔌 *UPSTREAM*", "", ...lines, "", `total model dirutekan: ${Object.keys(u.models || {}).length}`].join("\n");
 };
 
+const modelsText = (routes, usage) => {
+  const rows = new Map((usage.models || []).map((m) => [m.model, m]));
+  const cool = new Map((routes.upstreams || []).map((x) => [x.name, x.cooling_s]));
+  const ids = Object.keys(routes.models || {});
+  if (!ids.length) return "Belum ada model dirutekan.";
+  const line = (id) => {
+    const u = rows.get(id);
+    const tok = u ? num(u.tokens) + " token · " + num(u.requests) + " req" + (u.errors ? ` · ${num(u.errors)} err` : "") : "0 token · 0 req";
+    const hops = routes.models[id].map((t, i) => {
+      const c = cool.get(t.upstream) || 0;
+      return `  ${i + 1}. ${t.upstream} → ${t.model}${c ? ` ⛔${Math.ceil(c / 60)}m` : ""}`;
+    });
+    return [`• *${id}*`, `  total terpakai: ${tok}`, ...hops].join("\n");
+  };
+  // used models first, then the rest alphabetically
+  const used = [...ids].filter((id) => rows.has(id)).sort((a, b) => (rows.get(b).tokens || 0) - (rows.get(a).tokens || 0));
+  const unused = ids.filter((id) => !rows.has(id)).sort();
+  const since = usage.since ? new Date(usage.since) : null;
+  const label = since ? since.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }).slice(0, 16) : "-";
+  return [
+    "🧠 *MODEL — HARI INI*",
+    "",
+    ...[...used, ...unused].map(line),
+    "",
+    `${ids.length} model · ${(routes.upstreams || []).length} upstream · sejak ${label}`,
+  ].join("\n");
+};
+
 const usageText = (u, only) => {
   const rows = only ? u.clients.filter((c) => String(c.client).toLowerCase() === only.toLowerCase()) : u.clients;
   if (!rows.length) return `Tidak ada pemakaian${only ? ` untuk *${only}*` : ""} dalam ${u.hours} jam terakhir.`;
@@ -99,6 +127,7 @@ const HELP = (p) =>
     `• *${p}gw errors [n]* — error terakhir`,
     `• *${p}gw upstreams* — status tiap provider`,
     `• *${p}gw upstreams reset <provider>* — hapus cooldown`,
+    `• *${p}gw model* — daftar model + token hari ini`,
     `• *${p}gw restart --yes* — restart service gateway`,
     `• *${p}gw funnel* — status Tailscale Funnel`,
   ].join("\n");
@@ -138,6 +167,11 @@ const run = async (client, message, args, commands) => {
     }
 
     if (sub === "reset") return await reply(await resetUpstream(String(args[1] || "")));
+
+    if (sub === "model" || sub === "models") {
+      const [routes, usage] = await Promise.all([api("/admin/upstreams"), api("/admin/models")]);
+      return await reply(modelsText(routes, usage));
+    }
 
     if (sub === "key" && sub2 === "add") {
       const label = String(args[2] || "").trim();
@@ -196,6 +230,7 @@ module.exports = {
     "errors [n]",
     "upstreams",
     "upstreams reset <provider>",
+    "model",
     "restart --yes",
     "funnel",
   ],
