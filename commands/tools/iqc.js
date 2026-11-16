@@ -1,5 +1,7 @@
 const { getPrefix } = require("../../lib/prefix");
-const { renderQuote } = require("../../lib/iqc");
+const { renderQuote: renderLocal } = require("../../lib/iqc");
+const { renderQuote: renderBrowser, buildState } = require("../../lib/iqc-browser");
+const logger = require("../../lib/logger");
 const { guarded, reply, quotedText, cooldown } = require("../../lib/featureutil");
 
 // "!iqc Budi | > halo" -> kontak Budi, bubble keluar (kanan)
@@ -16,6 +18,17 @@ const parse = (raw, fallbackName) => {
   return { contact, body, outgoing };
 };
 
+const render = async (body, opts) => {
+  if (String(process.env.IQC_ENGINE || "").toLowerCase() === "canvas") return renderLocal(body, opts);
+  try {
+    return await renderBrowser(buildState(body, opts));
+  } catch (err) {
+    // CPU penuh / chromium gagal: tetap kirim gambar lewat renderer lokal
+    logger.warn(`iqc: chromium dilewati (${err.message})`);
+    return renderLocal(body, opts);
+  }
+};
+
 const execute = async (client, message, args) => {
   const raw = args.join(" ").trim() || quotedText(message);
   if (!raw.trim()) {
@@ -29,7 +42,7 @@ const execute = async (client, message, args) => {
   const { contact, body, outgoing } = parse(raw, message.pushName);
   if (!body) throw new Error("Teks kosong setelah nama kontak.");
   cooldown(message, "iqc", 5000);
-  const png = await renderQuote(body, { contact, outgoing });
+  const png = await render(body, { contact, outgoing });
   return client.sendMessage(message.key.remoteJid, { image: png }, { quoted: message });
 };
 
@@ -38,6 +51,6 @@ module.exports = {
   command: ["iqc", "qc2"],
   category: "tools",
   visible: true,
-  description: "Fake quote chat iPhone (dark) dari teks/reply",
+  description: "Fake quote chat iPhone (chromium, fallback canvas)",
   execute: guarded("iqc", execute)
 };
