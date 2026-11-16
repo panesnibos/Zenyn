@@ -51,6 +51,7 @@ module.exports = {
   command: ["iqc", "qc2"],
   category: "tools",
   visible: true,
+  limit: 2,
   description: "Fake quote chat iPhone (chromium, fallback canvas)",
   execute: guarded("iqc", execute)
 };
