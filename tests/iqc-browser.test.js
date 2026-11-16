@@ -18,7 +18,7 @@ const png = (buf) => buf.subarray(0, 8).toString('hex') === '89504e470d0a1a0a'
   const incoming = buildState('Halo', { contact: 'Budi' })
   assert.equal(incoming.messages[0].sender, 'other')
 
-  const status = engineStatus()
+  const status = await engineStatus()
   if (process.platform !== 'linux' || !status.ok) {
     console.log('skip render chromium (' + (process.platform !== 'linux' ? 'bukan linux' : status.problems.join(', ')) + ')')
     console.log('ok   iqc-browser: buildState valid, engine dilewati')
