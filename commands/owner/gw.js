@@ -87,7 +87,7 @@ const modelsText = (routes, usage) => {
   const used = [...ids].filter((id) => rows.has(id)).sort((a, b) => (rows.get(b).tokens || 0) - (rows.get(a).tokens || 0));
   const unused = ids.filter((id) => !rows.has(id)).sort();
   const since = usage.since ? new Date(usage.since) : null;
-  const label = since ? since.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }).slice(0, 16) : "-";
+  const label = since ? "00.00 WIB" : "-";
   return [
     "🧠 *MODEL — HARI INI*",
     "",
