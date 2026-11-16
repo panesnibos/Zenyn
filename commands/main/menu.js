@@ -52,6 +52,9 @@ const buildMenuText = (p, categories, commands, user) => {
       .forEach((name) => {
         const cmd = uniqueCmds.get(name);
         lines.push(`││ ⟿ ${p}${name}${riskOf(cmd)}`);
+        if (Array.isArray(cmd.subcommands)) {
+          cmd.subcommands.forEach((s) => lines.push("   - " + p + name + " " + s));
+        }
       });
     lines.push("│╰─➤");
     lines.push("│");

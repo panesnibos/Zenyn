@@ -6,7 +6,7 @@ const logger = require("../../lib/logger");
 const { isOwner } = require("../../lib/owner");
 const { getPrefix } = require("../../lib/prefix");
 
-const run = promisify(execFile);
+const sh = promisify(execFile);
 const TIMEOUT_MS = 15000;
 const WA_LIMIT = 3500;
 
@@ -51,14 +51,23 @@ const statusText = (s) =>
     "🟢 *LLM GATEWAY* hidup",
     "",
     `• uptime   : ${dur(s.uptime_s)}`,
-    `• upstream : ${s.upstream}`,
+    `• upstream : ${(s.upstreams || []).map((u) => u.name + (u.cooling_s ? ` ⛔${Math.round(u.cooling_s / 60)}m` : "")).join(" · ") || "-"}`,
+    `• model    : ${s.models || 0} dirutekan`,
     `• client   : ${s.clients} key`,
     `• hari ini : ${num(s.today.requests)} req · ${num(s.today.tokens)} token · ${num(s.today.errors)} error`,
     `• 5 menit  : ${num(s.last_5m.requests)} req · 5xx ${s.last_5m.s5xx} · 429 ${s.last_5m.s429} · 402 ${s.last_5m.s402}`,
     s.last_request
-      ? `• terakhir : ${s.last_request.client || "?"} → ${s.last_request.status} (${latency(s.last_request.ms)}, ${s.last_request.attempts}× coba)`
+      ? `• terakhir : ${s.last_request.client || "?"} → ${s.last_request.status} (${latency(s.last_request.ms)}, ${s.last_request.attempts}× coba${s.last_request.upstream ? `, ${s.last_request.upstream}` : ""})`
       : "• terakhir : belum ada request",
   ].join("\n");
+
+const upstreamsText = (u) => {
+  const lines = (u.upstreams || []).map((x) => {
+    const state = x.cooling_s ? `⛔ cooldown ${Math.ceil(x.cooling_s / 60)}m` : "✅";
+    return `• *${x.name}* ${state}\n  ${x.keys} key · ${x.models} model\n  ${x.base}`;
+  });
+  return ["🔌 *UPSTREAM*", "", ...lines, "", `total model dirutekan: ${Object.keys(u.models || {}).length}`].join("\n");
+};
 
 const usageText = (u, only) => {
   const rows = only ? u.clients.filter((c) => String(c.client).toLowerCase() === only.toLowerCase()) : u.clients;
@@ -88,11 +97,13 @@ const HELP = (p) =>
     `• *${p}gw key add <label>* — buat key baru`,
     `• *${p}gw key del <label>* — cabut key`,
     `• *${p}gw errors [n]* — error terakhir`,
+    `• *${p}gw upstreams* — status tiap provider`,
+    `• *${p}gw upstreams reset <provider>* — hapus cooldown`,
     `• *${p}gw restart --yes* — restart service gateway`,
     `• *${p}gw funnel* — status Tailscale Funnel`,
   ].join("\n");
 
-const execute = async (client, message, args, commands) => {
+const run = async (client, message, args, commands) => {
   if (!isOwner(message)) return; // command tersembunyi: jangan bocorkan keberadaannya
 
   const jid = message.key.remoteJid;
@@ -100,6 +111,13 @@ const execute = async (client, message, args, commands) => {
   const reply = (text) => client.sendMessage(jid, { text: clip(text) }, { quoted: message });
   const sub = String(args[0] || "").toLowerCase();
   const sub2 = String(args[1] || "").toLowerCase();
+
+  const resetUpstream = async (name) => {
+    if (!name) return `Format: *${p}gw upstreams reset <provider>*`;
+    const r = await api(`/admin/upstreams/${encodeURIComponent(name)}/reset`, { method: "POST" });
+    logger.cmd(`gw: breaker ${r.reset} direset`);
+    return `✅ Breaker *${r.reset}* dihapus. Upstream itu dicoba lagi mulai request berikutnya.`;
+  };
 
   try {
     if (!sub || sub === "status") return await reply(statusText(await api("/admin/status")));
@@ -113,6 +131,13 @@ const execute = async (client, message, args, commands) => {
       const { errors } = await api(`/admin/errors?limit=${limit}`);
       return await reply(errorsText(errors));
     }
+
+    if (sub === "upstreams") {
+      if (sub2 === "reset") return await reply(await resetUpstream(String(args[2] || "")));
+      return await reply(upstreamsText(await api("/admin/upstreams")));
+    }
+
+    if (sub === "reset") return await reply(await resetUpstream(String(args[1] || "")));
 
     if (sub === "key" && sub2 === "add") {
       const label = String(args[2] || "").trim();
@@ -137,14 +162,14 @@ const execute = async (client, message, args, commands) => {
         return await reply(`Restart memutus semua client API sekejap.\nKalau yakin: *${p}gw restart --yes*`);
       }
       await reply("⏳ Merestart gateway...");
-      await run("systemctl", ["restart", "llm-gw"], { timeout: 30000 });
+      await sh("systemctl", ["restart", "llm-gw"], { timeout: 30000 });
       await new Promise((r) => setTimeout(r, 2500));
       logger.cmd("gw: service direstart");
       return await reply("✅ Gateway direstart.\n\n" + statusText(await api("/admin/status")));
     }
 
     if (sub === "funnel") {
-      const { stdout, stderr } = await run("tailscale", ["funnel", "status"], { timeout: 20000 });
+      const { stdout, stderr } = await sh("tailscale", ["funnel", "status"], { timeout: 20000 });
       return await reply(code(((stdout || "") + (stderr || "")).trim() || "(kosong)"));
     }
 
@@ -163,5 +188,17 @@ module.exports = {
   category: "Gateway",
   description: "Status & kontrol LLM gateway (owner)",
   visible: false,
-  execute,
+  subcommands: [
+    "usage [label]",
+    "keys",
+    "key add <label>",
+    "key del <label>",
+    "errors [n]",
+    "upstreams",
+    "upstreams reset <provider>",
+    "restart --yes",
+    "funnel",
+  ],
+  run,
+  execute: run,
 };
