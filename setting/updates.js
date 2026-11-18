@@ -24,7 +24,9 @@ module.exports = [
       "Gear baru di shop: Silver Dagger, Hunter Bow, Obsidian Armor, Vanguard Plate, Phantom Cloak, Sage Amulet, Merchant Ring",
       "Colossus Blade (Legendary) lewat resep; resep bahan Iron Ingot & Steel Ingot ditambahkan",
       "Consumable baru dengan .use: Exp Scroll (+150 EXP), Pet Food, Strength Tonic (+20% ATK 1 battle), Anti-Death Charm, Bait",
-      "Format k/M/B kini ikut di konfirmasi beli/jual dan label tombol (.shop, .market, .equip, dll)"
+      "Format k/M/B kini ikut di konfirmasi beli/jual dan label tombol (.shop, .market, .equip, dll)",
+      "Raid dirombak: menu + tombol list, boss grup (15 menit, level maks 200) dan world boss global via .raid join",
+      "Raid: boss membalas damage, mati = terkunci 60 detik, hadiah dibagi sesuai share damage + DM tiap peserta"
     ]
   },
   {
