@@ -39,17 +39,21 @@ const lootFor = (user) => {
     if (item) return item;
   }
   if (Math.random() < 0.35) {
-    const materials = ["herb", "ore", "wood", "stone", "iron"];
+    const materials = ["herb", "ore", "wood", "stone", "iron", "crystal"];
     const key = materials[randInt(0, materials.length - 1)];
     const defs = {
       herb: { name: "Herb", emoji: "🌿" },
       ore: { name: "Ore", emoji: "🪨" },
       wood: { name: "Wood", emoji: "🪵" },
       stone: { name: "Stone", emoji: "🧱" },
-      iron: { name: "Iron Ingot", emoji: "🔩" }
+      iron: { name: "Iron Ingot", emoji: "🔩" },
+      crystal: { name: "Crystal", emoji: "🔮" }
     };
     return { name: defs[key].name, emoji: defs[key].emoji, qty: randInt(1, 2), material: true };
   }
+  // drop langka: permata/bijih mithril
+  if (Math.random() < 0.03) return { name: "Diamond", emoji: "💎", qty: 1, material: true };
+  if (Math.random() < 0.04) return { name: "Mithril Ore", emoji: "⛏️", qty: 1, material: true };
   return null;
 };
 

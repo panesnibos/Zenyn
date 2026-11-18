@@ -88,7 +88,7 @@ const execute = async (client, message, args, commands, commandName) => {
 
 module.exports = {
   name: "heal",
-  command: ["heal", "potion", "elixir"],
+  command: ["heal", "potion", "elixir", "greaterpotion"],
   category: "rpg",
   description: "Gunakan item heal",
   visible: true,

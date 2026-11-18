@@ -169,5 +169,90 @@
     "name": "Iron Ingot",
     "emoji": "🔩",
     "type": "material"
+  },
+  "mithril-ore": {
+    "name": "Mithril Ore",
+    "emoji": "⛏️",
+    "type": "material"
+  },
+  "crystal": {
+    "name": "Crystal",
+    "emoji": "🔮",
+    "type": "material"
+  },
+  "dragon-scale": {
+    "name": "Dragon Scale",
+    "emoji": "🐲",
+    "type": "material"
+  },
+  "rare-fish": {
+    "name": "Rare Fish",
+    "emoji": "🐠",
+    "type": "material"
+  },
+  "hardwood": {
+    "name": "Hardwood",
+    "emoji": "🪵",
+    "type": "material"
+  },
+  "moon-herb": {
+    "name": "Moon Herb",
+    "emoji": "🌙",
+    "type": "material"
+  },
+  "guardian-amulet": {
+    "name": "Guardian Amulet",
+    "emoji": "🛡️",
+    "type": "equipment",
+    "slot": "accessory",
+    "rarity": "Epic",
+    "def": 12,
+    "hp": 30
+  },
+  "shadow-blade": {
+    "name": "Shadow Blade",
+    "emoji": "🗡️",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Legendary",
+    "atk": 72,
+    "goldBonus": 0.1
+  },
+  "titan-armor": {
+    "name": "Titan Armor",
+    "emoji": "🛡️",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Legendary",
+    "def": 55,
+    "hp": 40
+  },
+  "celestial-sword": {
+    "name": "Celestial Sword",
+    "emoji": "⚡",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Mythic",
+    "atk": 85
+  },
+  "celestial-armor": {
+    "name": "Celestial Armor",
+    "emoji": "✨",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Mythic",
+    "def": 62,
+    "hp": 50
+  },
+  "celestial-orb": {
+    "name": "Celestial Orb",
+    "emoji": "🌟",
+    "type": "equipment",
+    "slot": "accessory",
+    "rarity": "Mythic",
+    "atk": 15,
+    "def": 15,
+    "hp": 80,
+    "goldBonus": 0.3
   }
 }

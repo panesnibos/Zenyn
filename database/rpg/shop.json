@@ -187,5 +187,19 @@
     "emoji": "🔩",
     "sell": 60,
     "buyable": false
+  },
+  "greater-potion": {
+    "name": "Greater Potion",
+    "emoji": "🧪",
+    "price": 400,
+    "sell": 160,
+    "buyable": true
+  },
+  "guardian-amulet": {
+    "name": "Guardian Amulet",
+    "emoji": "🛡️",
+    "price": 12000,
+    "sell": 4800,
+    "buyable": true
   }
 }

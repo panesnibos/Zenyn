@@ -80,6 +80,11 @@ const execute = async (client, message, args, commands, commandName) => {
             loot = `${item.emoji} ${item.name}`;
           }
         }
+        // tambang dalam dungeon: permata langka dari boss lantai tinggi
+        if (floor >= 30 && Math.random() < 0.08) {
+          db.addItem(userId, { name: "Diamond", emoji: "💎", qty: 1 });
+          loot = `${loot ? loot + ", " : ""}💎 Diamond`;
+        }
 
         const newly = db.checkAchievements(userId);
 

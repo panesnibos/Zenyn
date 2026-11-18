@@ -10,5 +10,11 @@
     "emoji": "🧃",
     "effect": 250,
     "type": "heal"
+  },
+  "greaterpotion": {
+    "name": "Greater Potion",
+    "emoji": "🧪",
+    "effect": 120,
+    "type": "heal"
   }
 }
