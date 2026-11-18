@@ -21,6 +21,7 @@ const addbot = require("./lib/addbot");
 const nokos = require("./lib/nokos");
 const gwmonitor = require("./lib/gwmonitor");
 const antilink = require("./lib/antilink");
+const auction = require("./lib/auction");
 
 const loadedEnv = loadEnv();
 if (loadedEnv.length) logger.info(`env dimuat: ${loadedEnv.join(", ")}`);
@@ -143,12 +144,14 @@ async function connectBot() {
         addbot.start(client);
         nokos.start(client);
         gwmonitor.start(client);
+        auction.start(client);
       } else if (connection === "close") {
         stopWatcher();
         autopay.stop();
         addbot.stop();
         nokos.stop();
         gwmonitor.stop();
+        auction.stop();
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const reason = lastDisconnect?.error?.message || lastDisconnect?.error?.output?.payload?.message;
         const shouldReconnect = statusCode !== DisconnectReason.loggedOut;

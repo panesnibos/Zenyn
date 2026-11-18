@@ -44,7 +44,8 @@ const loadGacha = (ownedQty) => {
       }
     },
     "../../lib/rpgutil": { getUserId: () => "628100000001", getRank: () => ({ rank: "Novice", icon: "🌱" }) },
-    "../../lib/prefix": { getPrefix: () => "." }
+    "../../lib/prefix": { getPrefix: () => "." },
+    "../../lib/pity": { THRESHOLD: 50, get: () => 0, needed: () => 50, bump: () => 1, reset() {} }
   });
   return { gacha, state, client };
 };

@@ -23,3 +23,6 @@ database/gwmonitor.json
 package-lock.json
 vendor/
 database/antilink.json
+database/rpg/auction.json
+database/rpg/bank.json
+database/rpg/pity.json

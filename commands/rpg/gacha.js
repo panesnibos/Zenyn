@@ -4,6 +4,7 @@ const path = require("path");
 const { db } = require("../../lib/rpgdb");
 const { getUserId, getRank } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
+const pity = require("../../lib/pity");
 
 const gachaPath = path.join(__dirname, "../../database/rpg/gacha.json");
 let gachas = {};
@@ -130,16 +131,27 @@ const execute = async (client, message, args, commands, commandName) => {
         : "";
 
     let totalGold = 0;
+    let pityHit = 0;
     const tally = new Map();
+    const addTally = (got, qty) => {
+      const key = got.name.toLowerCase();
+      const prev = tally.get(key) || { emoji: got.emoji, name: got.name, qty: 0 };
+      prev.qty += qty;
+      tally.set(key, prev);
+    };
     for (let i = 0; i < qty; i++) {
       db.removeItem(userId, crate.name, 1);
       const got = openCrate(crate, userId);
       totalGold += got.gold;
-      if (got.item) {
-        const key = got.item.name.toLowerCase();
-        const prev = tally.get(key) || { emoji: got.item.emoji, name: got.item.name, qty: 0 };
-        prev.qty += got.item.qty;
-        tally.set(key, prev);
+      if (got.item) addTally(got.item, got.item.qty);
+
+      // jaminan setiap THRESHOLD buka: bonus Diamond
+      if (pity.bump(userId, crate.name) >= pity.THRESHOLD) {
+        pity.reset(userId, crate.name);
+        const bonus = { name: "Diamond", emoji: "💎", qty: 1 };
+        db.addItem(userId, bonus);
+        addTally(bonus, 1);
+        pityHit++;
       }
     }
 
@@ -150,6 +162,8 @@ const execute = async (client, message, args, commands, commandName) => {
     let text = `🎁 Kamu membuka *${crate.name}*${qty > 1 ? ` x${qty}` : ""}\n\n`;
     if (totalGold > 0) text += `💰 Gold: +${totalGold}\n`;
     text += `📦 Hasil:\n${results.join("\n")}${note}`;
+    if (pityHit) text += `\n\n🌟 *PITY PENUH* (${pity.THRESHOLD}x) — jaminan 💎 Diamond x${pityHit}`;
+    text += `\n\n🎯 Pity: ${pity.get(userId, crate.name)}/${pity.THRESHOLD} (jaminan dalam ${pity.needed(userId, crate.name)} buka)`;
 
     return await client.sendMessage(sender, { text }, { quoted: message });
 
