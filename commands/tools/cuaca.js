@@ -16,7 +16,10 @@ const weatherLabel = (code) => {
 
 const execute = async (client, message, args) => {
   const city = args.join(" ").trim();
-  if (!city) return reply(client, message, `🌤️ Format: ${getPrefix(message)}cuaca <kota>\nContoh: ${getPrefix(message)}cuaca Bandung`);
+  if (!city) {
+    await reply(client, message, `🌤️ Format: ${getPrefix(message)}cuaca <kota>\nContoh: ${getPrefix(message)}cuaca Bandung`);
+    return false;
+  }
   if (city.length > 100) throw new Error("Nama kota maksimal 100 karakter.");
   cooldown(message, "cuaca");
   const key = city.toLowerCase();

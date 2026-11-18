@@ -4,10 +4,12 @@
 //         .bcgc 5 <teks>      -> batasi 5 grup (tes)
 const config = require("../../config");
 const logger = require("../../lib/logger");
+const sharp = require("sharp");
 const { isOwner } = require("../../lib/owner");
 const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const { stamp } = require("../../lib/stamp");
+const { findMedia, download } = require("../../lib/mediautil");
 
 const cfg = () => config.broadcast || {};
 const delayMs = () => Math.max(0, Number(cfg().delayMs ?? 15000));
@@ -31,13 +33,47 @@ const urlButton = () =>
       ]
     : [];
 
-const buildPayload = (body) => {
+const buildPayload = (body, media) => {
   const text = buildText(body);
+  if (media) {
+    // gambar + caption: tombol native tidak bisa digabung caption biasa,
+    // jadi link grup masuk ke caption (dipotong di batas caption WhatsApp).
+    const caption = [text, footerText(), config.groupLink || ""].filter(Boolean).join("\n\n").slice(0, 1024);
+    return { image: media.buffer, mimetype: media.mimetype, caption };
+  }
   const buttons = urlButton();
   // waktu kirim masuk footer pesan (tip), bukan badan teks
   return buttons.length
     ? { text, tip: footerText(), interactiveButtons: buttons }
     : { text: `${text}\n\n${footerText()}\n\n${config.groupLink || ""}`.trim() };
+};
+
+// ---------- media broadcast: khusus gambar ----------
+const MAX_MEDIA = 8 * 1024 * 1024;
+const IMAGE_MAX_DIM = 1600;
+
+const imageOf = async (message) => {
+  const found = findMedia(message, ["image", "video", "document", "audio", "sticker"]);
+  if (!found) return null;
+  if (found.kind !== "image") {
+    throw new Error("Hanya gambar yang bisa dibroadcast. Video, dokumen, audio, dan stiker tidak didukung.");
+  }
+  const node = found.node || {};
+  if (Number(node.fileLength || 0) > MAX_MEDIA) throw new Error("Gambar terlalu besar (maks 8 MB).");
+
+  const buffer = await download(found, { maxBytes: MAX_MEDIA });
+  if (!buffer?.length) throw new Error("Gagal mengunduh gambar.");
+
+  const meta = await sharp(buffer).metadata().catch(() => ({}));
+  const needShrink = buffer.length > 5 * 1024 * 1024 || (meta.width || 0) > IMAGE_MAX_DIM || (meta.height || 0) > IMAGE_MAX_DIM;
+  if (!needShrink) return { buffer, mimetype: "image/jpeg", size: buffer.length };
+
+  const out = await sharp(buffer)
+    .rotate()
+    .resize({ width: IMAGE_MAX_DIM, height: IMAGE_MAX_DIM, fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 82 })
+    .toBuffer();
+  return { buffer: out, mimetype: "image/jpeg", size: out.length };
 };
 
 const groupJids = async (client) => {
@@ -80,7 +116,7 @@ const estimate = (total) => {
   return s ? `~${m} menit ${s} detik` : `~${m} menit`;
 };
 
-const preview = async (client, sender, message, body, limit, p) => {
+const preview = async (client, sender, message, body, limit, p, media = null) => {
   const groups = await groupJids(client);
   const total = limit > 0 ? Math.min(limit, groups.length) : groups.length;
 
@@ -99,6 +135,7 @@ const preview = async (client, sender, message, body, limit, p) => {
     `Target   : ${total} grup`,
     `Jeda     : ${delayMs() / 1000}s/grup`,
     `Estimasi : ${estimate(total)}`,
+    media ? `Media    : 🖼 gambar (${Math.round(media.size / 1024)} KB)` : "",
     "",
     "────────────────",
     previewText,
@@ -115,7 +152,7 @@ const preview = async (client, sender, message, body, limit, p) => {
   await client.sendMessage(sender, { text: lines.join("\n") }, { quoted: message });
 
   const key = uidOf(message);
-  pending.set(key, { body, limit, at: Date.now() });
+  pending.set(key, { body, limit, at: Date.now(), media });
   logger.cmd(`bcgc: preview ${total} grup oleh ${key}`);
   return total;
 };
@@ -135,7 +172,7 @@ const takePending = (uid) => {
   return item;
 };
 
-const runBroadcast = async (client, sender, message, body, limit = 0) => {
+const runBroadcast = async (client, sender, message, body, limit = 0, media = null) => {
   const groups = await groupJids(client);
   const targets = limit > 0 ? groups.slice(0, limit) : groups;
   const total = targets.length;
@@ -148,7 +185,7 @@ const runBroadcast = async (client, sender, message, body, limit = 0) => {
     );
   }
 
-  const payload = buildPayload(body);
+  const payload = buildPayload(body, media);
   let sent = 0;
   let failed = 0;
 
@@ -187,10 +224,13 @@ const usage = (p) =>
     "Kirim promosi ke semua grup + tombol link grup.",
     "",
     `• *${p}bcgc <teks>* — preview dulu`,
+    `• *${p}bcgc <teks>* sambil reply gambar — broadcast gambar + caption`,
     `• *${p}bcgc go* — kirim sesuai preview`,
     `• *${p}bcgc batal* — batalkan preview`,
     `• *${p}bcgc --yes <teks>* — kirim langsung`,
     `• *${p}bcgc 5 <teks>* — batasi 5 grup (tes)`,
+    "",
+    "Hanya gambar yang bisa dibroadcast (video/dokumen/stiker ditolak).",
     "",
     `Jeda antar grup ${delayMs() / 1000} detik.`
   ].join("\n");
@@ -235,7 +275,7 @@ const execute = async (client, message, args, commands, commandName) => {
           { quoted: message }
         );
       }
-      runBroadcast(client, sender, message, item.body, item.limit).catch((err) =>
+      runBroadcast(client, sender, message, item.body, item.limit, item.media).catch((err) =>
         logger.error(`bcgc: ${err.message}`)
       );
       return;
@@ -254,22 +294,25 @@ const execute = async (client, message, args, commands, commandName) => {
     }
 
     const body = words.join(" ").trim();
-    if (!body) {
+    // gambar opsional: reply foto (atau caption foto) -> broadcast gambar + caption
+    const media = await imageOf(message);
+
+    if (!body && !media) {
       return await client.sendMessage(
         sender,
-        { text: `❌ Teks promosi kosong.\n\nContoh: *${p}bcgc Promo bot murah, cek link!*` },
+        { text: `❌ Teks promosi kosong.\n\nContoh: *${p}bcgc Promo bot murah, cek link!*\nAtau reply gambar lalu *${p}bcgc <caption>*` },
         { quoted: message }
       );
     }
 
     if (immediate) {
-      runBroadcast(client, sender, message, body, limit).catch((err) =>
+      runBroadcast(client, sender, message, body, limit, media).catch((err) =>
         logger.error(`bcgc: ${err.message}`)
       );
       return;
     }
 
-    return await preview(client, sender, message, body, limit, p);
+    return await preview(client, sender, message, body, limit, p, media);
   } catch (err) {
     logger.error("bcgc:", err);
     return client.sendMessage(sender, { text: `❌ Error: ${err.message}` }, { quoted: message });

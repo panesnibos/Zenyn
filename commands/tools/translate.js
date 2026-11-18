@@ -14,11 +14,14 @@ const execute = async (client, message, args) => {
   const requested = String(args[0] || "").toLowerCase();
   const lang = Object.keys(languages).find((code) => code.toLowerCase() === requested);
   const text = (args.slice(1).join(" ") || quotedText(message)).trim();
-  if (!lang || !text) return reply(client, message, [
-    `🌐 Format: ${getPrefix(message)}translate <kode bahasa> <teks>`,
-    "Atau reply teks lalu translate <kode bahasa>.", "",
-    ...Object.entries(languages).map(([code, name]) => `${code}: ${name}`)
-  ].join("\n"));
+  if (!lang || !text) {
+    await reply(client, message, [
+      `🌐 Format: ${getPrefix(message)}translate <kode bahasa> <teks>`,
+      "Atau reply teks lalu translate <kode bahasa>.", "",
+      ...Object.entries(languages).map(([code, name]) => `${code}: ${name}`)
+    ].join("\n"));
+    return false;
+  }
   if (text.length > 2000) throw new Error("Teks terjemahan maksimal 2000 karakter.");
   cooldown(message, "translate");
   let result, source = "Google Translate";

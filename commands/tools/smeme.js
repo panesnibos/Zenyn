@@ -7,7 +7,10 @@ const { guarded, reply, cooldown } = require("../../lib/featureutil");
 const execute = async (client, message, args) => {
   const found = findMedia(message, ["image", "sticker"]);
   const texts = args.join(" ").split("|").map((text) => text.trim());
-  if (!found || !texts.some(Boolean)) return reply(client, message, `🖼️ Reply gambar/sticker statis:\n${getPrefix(message)}smeme teks atas | teks bawah\nBisa juga kirim gambar dengan caption command.`);
+  if (!found || !texts.some(Boolean)) {
+    await reply(client, message, `🖼️ Reply gambar/sticker statis:\n${getPrefix(message)}smeme teks atas | teks bawah\nBisa juga kirim gambar dengan caption command.`);
+    return false;
+  }
   if (texts.length > 2 || texts.some((text) => text.length > 100)) throw new Error("Gunakan maksimal 2 bagian teks, masing-masing 100 karakter.");
   if (found.node.isAnimated) throw new Error("Gunakan gambar atau sticker statis, bukan animasi.");
   cooldown(message, "smeme");

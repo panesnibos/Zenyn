@@ -61,42 +61,46 @@ const execute = async (client, message, args) => {
   if (config.ytsummarize?.premium !== false && !isOwner(message)) {
     const user = uid ? db.getUser(uid, message.pushName || "Player") : null;
     if (!user || statusOf(user) === "User") {
-      return await client.sendMessage(
+      await client.sendMessage(
         sender,
         {
           text: `🔒 *KHUSUS PREMIUM*\n\nFitur ${p}ytsummarize hanya untuk Premium/Donatur.\nBeli premium: *${p}premium*`
         },
         { quoted: message }
       );
+      return false;
     }
   }
 
   const url = yt.parseUrl(args.join(" "));
   if (!url) {
-    return await client.sendMessage(
+    await client.sendMessage(
       sender,
       {
         text: `📺 *RINGKAS VIDEO YOUTUBE*\n\nFormat: *${p}ytsummarize <link>*\nContoh: *${p}ytsummarize https://youtu.be/xxxxx*`
       },
       { quoted: message }
     );
+    return false;
   }
 
   const wait = Math.max(0, Number(config.ytsummarize?.cooldownMs ?? 60000) - (Date.now() - (cooldown.get(uid) || 0)));
   if (wait > 0) {
-    return await client.sendMessage(
+    await client.sendMessage(
       sender,
       { text: `⏳ Tunggu ${Math.ceil(wait / 1000)} detik lagi.` },
       { quoted: message }
     );
+    return false;
   }
 
   if (!ai.isConfigured()) {
-    return await client.sendMessage(
+    await client.sendMessage(
       sender,
       { text: "❌ AI belum dikonfigurasi. Owner harus mengisi GEMINI_API_KEY." },
       { quoted: message }
     );
+    return false;
   }
 
   cooldown.set(uid, Date.now());
@@ -115,13 +119,14 @@ const execute = async (client, message, args) => {
     const material = transcript || desc;
 
     if (!material || material.length < 40) {
-      return await client.sendMessage(
+      await client.sendMessage(
         sender,
         {
           text: `⚠️ Tidak ada transkrip/deskripsi yang bisa diringkas untuk video:\n*${title}*`
         },
         { quoted: message }
       );
+      return false;
     }
 
     const answer = await ai.ask({

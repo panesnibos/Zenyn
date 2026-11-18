@@ -19,13 +19,14 @@ const execute = async (client, message, args) => {
 
   try {
     if (["help", "bantuan"].includes(mode)) {
-      return await client.sendMessage(
+      await client.sendMessage(
         sender,
         {
           text: `🌍 *INFO GEMPA BMKG*\n\n${p}gempa — gempa terbaru\n${p}gempa list — 10 gempa terakhir (M5+)\n${p}gempa dirasakan — gempa dirasakan`
         },
         { quoted: message }
       );
+      return false;
     }
 
     if (["list", "terkini", "recent"].includes(mode)) {

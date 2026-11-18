@@ -5,7 +5,10 @@ const { guarded, reply, cooldown } = require("../../lib/featureutil");
 
 const execute = async (client, message) => {
   const found = findMedia(message, ["audio", "video", "document"]);
-  if (!found) return reply(client, message, `🎙️ Reply audio/video lalu ${getPrefix(message)}tovn.\nMaksimal 12 MB; hasil maksimal 60 detik. Sticker tidak punya suara.`);
+  if (!found) {
+    await reply(client, message, `🎙️ Reply audio/video lalu ${getPrefix(message)}tovn.\nMaksimal 12 MB; hasil maksimal 60 detik. Sticker tidak punya suara.`);
+    return false;
+  }
   if (found.kind === "document" && !/^(audio|video)\//i.test(found.node.mimetype || "")) throw new Error("Dokumen harus berupa audio/video.");
   cooldown(message, "tovn", 5000);
   const buffer = await download(found);

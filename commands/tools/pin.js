@@ -9,7 +9,7 @@ const execute = async (client, message, args) => {
   const p = getPrefix(message);
 
   if (!raw) {
-    return reply(
+    await reply(
       client,
       message,
       `📌 *PINTEREST*\n\n• ${p}pin <link>\n• ${p}pinterest <link>\n\n` +
@@ -17,6 +17,7 @@ const execute = async (client, message, args) => {
         `Contoh: ${p}pin https://www.pinterest.com/pin/1234567890/\n\n` +
         "Satu media per pin (gambar atau video). Biaya 1 limit."
     );
+    return false;
   }
 
   const target = pin.parseUrl(raw);

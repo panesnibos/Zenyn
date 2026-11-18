@@ -90,23 +90,26 @@ const execute = async (client, message, args) => {
     }
 
     if (isEditMode && !found) {
-      return await client.sendMessage(
+      await client.sendMessage(
         sender,
         { text: "❌ Reply gambar (atau kirim gambar dengan caption *.ai edit <instruksi>*)" },
         { quoted: message }
       );
+      return false;
     }
 
     if ((isImageMode || isEditMode) && !prompt) {
-      return await client.sendMessage(
+      await client.sendMessage(
         sender,
         { text: `❌ Format: *.ai ${isEditMode ? "edit <instruksi>" : "img <prompt>"}*` },
         { quoted: message }
       );
+      return false;
     }
 
     if (!found && !prompt) {
-      return await client.sendMessage(sender, { text: USAGE }, { quoted: message });
+      await client.sendMessage(sender, { text: USAGE }, { quoted: message });
+      return false;
     }
 
     if (config.ai?.premiumImages !== false && (isImageMode || isEditMode) && !isOwner(message)) {
@@ -114,22 +117,24 @@ const execute = async (client, message, args) => {
       const user = uid ? db.getUser(uid, message.pushName || "Player") : null;
       if (!user || statusOf(user) === "User") {
         const p = getPrefix(message);
-        return await client.sendMessage(
+        await client.sendMessage(
           sender,
           {
             text: `🔒 *BUAT/EDIT GAMBAR = PREMIUM*\n\nMode teks tetap gratis (kena limit).\nBuat gambar AI: *${p}premium*`
           },
           { quoted: message }
         );
+        return false;
       }
     }
 
     if (!ai.isConfigured()) {
-      return await client.sendMessage(
+      await client.sendMessage(
         sender,
         { text: "❌ AI belum dikonfigurasi. Owner harus mengisi GEMINI_API_KEY." },
         { quoted: message }
       );
+      return false;
     }
 
     const hasMedia = !!found;

@@ -33,11 +33,12 @@ const execute = async (client, message, args) => {
   const raw = args.join(" ").trim() || quotedText(message);
   if (!raw.trim()) {
     const p = getPrefix(message);
-    return reply(
+    await reply(
       client,
       message,
       `💬 *FAKE QUOTE CHAT (iPhone)*\n\n• ${p}iqc <teks>\n• ${p}iqc Budi | <teks> — ganti nama kontak\n• ${p}iqc Budi | > <teks> — bubble kanan (kamu)\n• reply pesan lalu ketik ${p}iqc`
     );
+    return false;
   }
   const { contact, body, outgoing } = parse(raw, message.pushName);
   if (!body) throw new Error("Teks kosong setelah nama kontak.");

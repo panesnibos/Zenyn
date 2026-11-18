@@ -13,11 +13,12 @@ const execute = async (client, message, args, commands) => {
     const target = quoted?.stickerMessage || message.message?.stickerMessage;
 
     if (!target) {
-      return await client.sendMessage(
+      await client.sendMessage(
         sender,
         { text: "❌ Reply sticker dengan caption .toimg" },
         { quoted: message }
       );
+      return false;
     }
 
     await client.sendMessage(sender, { text: "⏳ Converting sticker..." }, { quoted: message });

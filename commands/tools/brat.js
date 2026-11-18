@@ -40,11 +40,12 @@ const execute = async (client, message, args) => {
     if (!text) text = String(quotedText(message) || "").trim();
 
     if (!text) {
-      return await client.sendMessage(
+      await client.sendMessage(
         sender,
         { text: "❌ Format: *.brat <teks>*\nBisa juga reply pesan teks lalu ketik *.brat*" },
         { quoted: message }
       );
+      return false;
     }
 
     await client.sendMessage(sender, { text: "⏳ Membuat sticker brat..." }, { quoted: message });

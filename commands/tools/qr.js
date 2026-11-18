@@ -13,7 +13,10 @@ const execute = async (client, message, args) => {
     dark = `#${color}`;
   }
   const text = (parts.join(" ") || quotedText(message)).trim();
-  if (!text) return reply(client, message, `🔳 Format: ${getPrefix(message)}qr <teks/URL>\nAtau reply teks. Opsional: --warna=334499`);
+  if (!text) {
+    await reply(client, message, `🔳 Format: ${getPrefix(message)}qr <teks/URL>\nAtau reply teks. Opsional: --warna=334499`);
+    return false;
+  }
   if (Buffer.byteLength(text, "utf8") > 1200) throw new Error("Teks QR maksimal 1200 byte (UTF-8).");
   cooldown(message, "qr");
   const image = await QRCode.toBuffer(text, { type: "png", width: 768, margin: 4, errorCorrectionLevel: "M", color: { dark, light: "#ffffff" } });

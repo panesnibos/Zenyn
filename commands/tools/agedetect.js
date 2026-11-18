@@ -44,13 +44,14 @@ const execute = async (client, message) => {
   const premium = isOwner(message) || (user && statusOf(user) !== "User");
 
   if (!premium) {
-    return await client.sendMessage(
+    await client.sendMessage(
       sender,
       {
         text: `🔒 *KHUSUS PREMIUM*\n\nFitur ${p}agedetect hanya untuk Premium/Donatur.\nBeli premium: *${p}premium*`
       },
       { quoted: message }
     );
+    return false;
   }
 
   const contextInfo =
