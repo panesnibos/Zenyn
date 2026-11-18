@@ -37,7 +37,7 @@ const sent = [];
 const client = { sendMessage: async (_jid, payload) => { sent.push(payload); return { key: { id: "s" } }; } };
 const message = () => ({ key: { id: "m1", remoteJid: "628100000001@s.whatsapp.net" }, pushName: "Uji", message: { conversation: ".hdr" } });
 
-const load = (buffer) =>
+const load = (buffer, status = "User") =>
   loadMocked("commands/tools/hdr.js", {
     "../../lib/logger": { info() {}, warn() {}, error() {}, cmd() {}, ok() {} },
     "../../lib/prefix": { getPrefix: () => "." },
@@ -48,7 +48,11 @@ const load = (buffer) =>
     "../../lib/mediautil": {
       findMedia: () => (buffer ? { kind: "image", node: { fileLength: 1000 } } : null),
       download: async () => buffer
-    }
+    },
+    "../../lib/rpgdb": { db: { getUser: () => ({ status: { type: status, until: 0 } }) } },
+    "../../lib/rpgutil": { getUserId: () => "u1" },
+    "../../lib/owner": { isOwner: () => false },
+    "../../lib/rpglimit": { statusOf: (u) => u.status.type }
   });
 
 test("hdr: output 2x dimensi, JPEG, dan varian strong/soft berbeda", async () => {
@@ -89,7 +93,7 @@ test("hdr: tanpa foto -> help gratis (return false)", async () => {
 
 test("hdr: kirim gambar hasil enhance, terima argumen mode", async () => {
   const src = await photo();
-  const cmd = load(src);
+  const cmd = load(src, "Premium");
 
   await cmd.execute(client, message(), [], {}, "hdr");
   let payload = sent.at(-1);
@@ -100,6 +104,25 @@ test("hdr: kirim gambar hasil enhance, terima argumen mode", async () => {
   await cmd.execute(client, message(), ["strong"], {}, "hdr");
   payload = sent.at(-1);
   assert.match(payload.caption, /HDR strong/);
+});
+
+test("hdr: strong/soft khusus premium, mode default tetap gratis", async () => {
+  const src = await photo();
+
+  const free = load(src, "User");
+  assert.equal(await free.execute(client, message(), ["strong"], {}, "hdr"), false);
+  assert.match(sent.at(-1).text, /PREMIUM/);
+  assert.equal(await free.execute(client, message(), ["soft"], {}, "hdr"), false);
+  assert.match(sent.at(-1).text, /PREMIUM/);
+
+  // mode default tetap jalan untuk user biasa
+  await free.execute(client, message(), [], {}, "hdr");
+  assert.ok(Buffer.isBuffer(sent.at(-1).image));
+
+  const prem = load(src, "Premium");
+  await prem.execute(client, message(), ["strong"], {}, "hdr");
+  assert.ok(Buffer.isBuffer(sent.at(-1).image));
+  assert.match(sent.at(-1).caption, /HDR strong/);
 });
 
 test("hdr: metadata tools, limit 1, bukan premium", () => {

@@ -4,6 +4,10 @@ const sharp = require("sharp");
 const { guarded, reply } = require("../../lib/featureutil");
 const { getPrefix } = require("../../lib/prefix");
 const { findMedia, download } = require("../../lib/mediautil");
+const { db } = require("../../lib/rpgdb");
+const { getUserId } = require("../../lib/rpgutil");
+const { isOwner } = require("../../lib/owner");
+const { statusOf } = require("../../lib/rpglimit");
 
 const MAX_IN = 10 * 1024 * 1024;
 const MAX_OUT = 5 * 1024 * 1024;
@@ -68,6 +72,22 @@ const execute = async (client, message, args) => {
   }
 
   const buffer = await download(found, { maxBytes: MAX_IN });
+
+  // varian strong/soft khusus premium; mode default tetap gratis
+  if (useMode !== "normal") {
+    const uid = getUserId(message);
+    const user = uid ? db.getUser(uid, message.pushName || "Player") : null;
+    const premium = isOwner(message) || (user && statusOf(user) !== "User");
+    if (!premium) {
+      await reply(
+        client,
+        message,
+        `🔒 *HDR ${useMode.toUpperCase()} = PREMIUM*\n\nMode *${p}hdr* tetap gratis (1 limit).\nVarian *${useMode}* khusus Premium/Donatur: *${p}premium*`
+      );
+      return false;
+    }
+  }
+
   const out = await process(buffer, { mode: useMode });
   const meta = await sharp(out).metadata();
 
