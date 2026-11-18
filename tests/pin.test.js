@@ -76,20 +76,39 @@ test("pin: cadangan __PWS_DATA__ (video_url & orig)", () => {
   assert.equal(pin.mediaOf("<html>kosong</html>"), null);
 });
 
-test("pin: fetchPin menolak HTTP error dan pin tanpa media", async () => {
-  const htmlFetch = (body, status = 200) => async () => ({
-    ok: status === 200,
-    status,
-    text: async () => body
-  });
+test("pin: fetchPin memakai video dari HTML bila ada", async () => {
+  const html = `<meta property="og:video" content="https://v1.pinimg.com/videos/mc/x.mp4">`;
+  const fetchImpl = async () => ({ ok: true, status: 200, url: "https://www.pinterest.com/pin/1/", text: async () => html });
+  const media = await pin.fetchPin("https://pin.it/x", { fetchImpl });
+  assert.deepEqual(media, { type: "video", url: "https://v1.pinimg.com/videos/mc/x.mp4" });
+});
 
-  const media = await pin.fetchPin("https://pin.it/x", {
-    fetchImpl: htmlFetch(`<meta property="og:image" content="https://i.pinimg.com/736x/a.jpg">`)
-  });
-  assert.equal(media.type, "image");
+test("pin: halaman SPA dilengkapi lewat oEmbed", async () => {
+  const fetchImpl = async (url) => {
+    if (String(url).includes("oembed")) {
+      return {
+        ok: true, status: 200,
+        json: async () => ({ thumbnail_url: "https://i.pinimg.com/736x/aa/bb.jpg", title: "Contoh pin" })
+      };
+    }
+    return { ok: true, status: 200, url: "https://www.pinterest.com/pin/42/", text: async () => "<html>shell spa</html>" };
+  };
+  const media = await pin.fetchPin("https://pin.it/x", { fetchImpl });
+  assert.deepEqual(media, { type: "image", url: "https://i.pinimg.com/originals/aa/bb.jpg", title: "Contoh pin" });
+});
 
-  await assert.rejects(() => pin.fetchPin("https://pin.it/x", { fetchImpl: htmlFetch("", 404) }), /404/);
-  await assert.rejects(() => pin.fetchPin("https://pin.it/x", { fetchImpl: htmlFetch("<html></html>") }), /tidak ditemukan/);
+test("pin: fetchPin menolak HTTP error dan pin tanpa media sama sekali", async () => {
+  const notFound = async () => ({ ok: false, status: 404, url: "", text: async () => "" });
+  await assert.rejects(() => pin.fetchPin("https://pin.it/x", { fetchImpl: notFound }), /404/);
+
+  const empty = async (url) => ({
+    ok: !String(url).includes("oembed"),
+    status: String(url).includes("oembed") ? 400 : 200,
+    url: "https://www.pinterest.com/pin/1/",
+    text: async () => "<html></html>",
+    json: async () => ({ error: "Url was not found" })
+  });
+  await assert.rejects(() => pin.fetchPin("https://pin.it/x", { fetchImpl: empty }), /tidak ditemukan/);
 });
 
 test("pin: download menjaga batas ukuran dan tipe media", async () => {
