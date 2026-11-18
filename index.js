@@ -20,6 +20,7 @@ const autopay = require("./lib/autopay");
 const addbot = require("./lib/addbot");
 const nokos = require("./lib/nokos");
 const gwmonitor = require("./lib/gwmonitor");
+const antilink = require("./lib/antilink");
 
 const loadedEnv = loadEnv();
 if (loadedEnv.length) logger.info(`env dimuat: ${loadedEnv.join(", ")}`);
@@ -311,6 +312,12 @@ async function connectBot() {
           }
 
           logger.msg(`[${sender}] ${text}`);
+
+          // antilink: link terlarang di grup -> hapus pesan + peringatan (3x keluar).
+          // Command berprefix dilewati supaya .antilink/.qr tidak ikut dihapus.
+          if (!config.prefixes.some((px) => text.startsWith(px))) {
+            if (await antilink.enforce(client, message, text)) continue;
+          }
 
           // Deteksi prefix
           let prefix = null;

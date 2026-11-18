@@ -22,3 +22,4 @@ database/gwmonitor.json
 *.log
 package-lock.json
 vendor/
+database/antilink.json
