@@ -23,7 +23,8 @@ module.exports = [
       "Format angka ringkas: gold/EXP di atas 10.000 tampil 12,3k / 13,2M / 2,5B",
       "Gear baru di shop: Silver Dagger, Hunter Bow, Obsidian Armor, Vanguard Plate, Phantom Cloak, Sage Amulet, Merchant Ring",
       "Colossus Blade (Legendary) lewat resep; resep bahan Iron Ingot & Steel Ingot ditambahkan",
-      "Consumable baru dengan .use: Exp Scroll (+150 EXP), Pet Food, Strength Tonic (+20% ATK 1 battle), Anti-Death Charm, Bait"
+      "Consumable baru dengan .use: Exp Scroll (+150 EXP), Pet Food, Strength Tonic (+20% ATK 1 battle), Anti-Death Charm, Bait",
+      "Format k/M/B kini ikut di konfirmasi beli/jual dan label tombol (.shop, .market, .equip, dll)"
     ]
   },
   {

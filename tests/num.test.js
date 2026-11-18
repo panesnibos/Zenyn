@@ -103,6 +103,71 @@ test("shortClient: hanya sendMessage/sendInteractiveMessage diformat", async () 
   assert.deepEqual(gm, { participants: [] });
 });
 
+test("formatPayload: tombol ikut diformat, id & url tetap utuh", () => {
+  const payload = {
+    text: "Pilih item",
+    interactiveButtons: [
+      {
+        name: "single_select",
+        buttonParamsJson: JSON.stringify({
+          title: "Daftar Item",
+          sections: [
+            {
+              title: "Kategori",
+              rows: [
+                { id: "buy steel-sword", title: "Steel Sword", description: "Harga: 15000 gold" },
+                { id: "buy phantom-cloak", title: "Phantom Cloak", description: "Harga: 16000 gold" }
+              ]
+            }
+          ]
+        })
+      },
+      { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "Harga 12500", id: "heal potion" }) }
+    ]
+  };
+
+  const out = formatPayload(payload);
+  const select = JSON.parse(out.interactiveButtons[0].buttonParamsJson);
+  assert.match(select.sections[0].rows[0].description, /15k gold/);
+  assert.match(select.sections[0].rows[1].description, /16k gold/);
+  assert.equal(select.sections[0].rows[0].id, "buy steel-sword", "id tidak boleh berubah");
+  const quick = JSON.parse(out.interactiveButtons[1].buttonParamsJson);
+  assert.equal(quick.display_text, "Harga 12,5k");
+  assert.equal(quick.id, "heal potion");
+
+  // payload asli tidak dimutasi
+  const original = JSON.parse(payload.interactiveButtons[0].buttonParamsJson);
+  assert.match(original.sections[0].rows[0].description, /15000/);
+});
+
+test("formatPayload: tombol legacy {id,text} dan cta_url aman", () => {
+  const out = formatPayload({
+    text: "x",
+    buttons: [{ id: "daily", text: "Klaim 12000 gold" }],
+    interactiveButtons: [{ name: "cta_url", buttonParamsJson: JSON.stringify({ display_text: "Buka", url: "https://example.com/12345" }) }]
+  });
+  assert.equal(out.buttons[0].text, "Klaim 12k gold");
+  assert.equal(out.buttons[0].id, "daily");
+  const cta = JSON.parse(out.interactiveButtons[0].buttonParamsJson);
+  assert.equal(cta.url, "https://example.com/12345", "url tidak diubah");
+});
+
+test("shortClient: sendButtons ikut diformat", async () => {
+  const calls = [];
+  const base = {
+    sendButtons: async (jid, payload, opts) => { calls.push({ jid, payload, opts }); return { key: { id: "b" } }; }
+  };
+  const client = shortClient(base);
+  await client.sendButtons("c@s.whatsapp.net", {
+    text: "Beli Steel Sword?",
+    footer: "Saldo 45000",
+    buttons: [{ id: "buy", text: "Bayar 5000" }]
+  });
+  assert.equal(calls[0].payload.text, "Beli Steel Sword?");
+  assert.equal(calls[0].payload.footer, "Saldo 45k");
+  assert.equal(calls[0].payload.buttons[0].text, "Bayar 5000");
+});
+
 test("index.js membungkus client RPG dengan shortClient", () => {
   const src = fs.readFileSync(path.join(root, "index.js"), "utf8");
   assert.match(src, /require\("\.\/lib\/rpgnum"\)/);
