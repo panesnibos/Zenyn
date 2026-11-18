@@ -74,6 +74,13 @@ const execute = async (client, message, args, commands, commandName) => {
 
     if (Math.random() < 0.25) total += drop("herb", randInt(1, 2));
 
+    // bait: otomatis dipakai saat memancing untuk hasil tambahan
+    if (spot.main === "fish" && Number(user.bait) > 0) {
+      db.updateUser(userId, (u) => { u.bait = Math.max(0, (Number(u.bait) || 0) - 1); });
+      total += drop("fish", 1);
+      results.push("🪱 Bait terpakai");
+    }
+
     // bahan khas tiap lokasi: ikan langka, kayu keras, herbal malam, mithril
     if (spot.rare && Math.random() < 0.15) total += drop(spot.rare, 1);
 

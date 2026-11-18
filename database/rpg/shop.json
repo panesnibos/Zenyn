@@ -201,5 +201,101 @@
     "price": 12000,
     "sell": 4800,
     "buyable": true
+  },
+  "silver-dagger": {
+    "name": "Silver Dagger",
+    "emoji": "🗡️",
+    "price": 800,
+    "sell": 320,
+    "buyable": true
+  },
+  "hunter-bow": {
+    "name": "Hunter Bow",
+    "emoji": "🏹",
+    "price": 1900,
+    "sell": 760,
+    "buyable": true
+  },
+  "obsidian-armor": {
+    "name": "Obsidian Armor",
+    "emoji": "🛡️",
+    "price": 6000,
+    "sell": 2400,
+    "buyable": true
+  },
+  "vanguard-plate": {
+    "name": "Vanguard Plate",
+    "emoji": "🛡️",
+    "price": 6500,
+    "sell": 2600,
+    "buyable": true
+  },
+  "phantom-cloak": {
+    "name": "Phantom Cloak",
+    "emoji": "🧥",
+    "price": 16000,
+    "sell": 6400,
+    "buyable": true
+  },
+  "sage-amulet": {
+    "name": "Sage Amulet",
+    "emoji": "📿",
+    "price": 1600,
+    "sell": 640,
+    "buyable": true
+  },
+  "merchant-ring": {
+    "name": "Merchant Ring",
+    "emoji": "💍",
+    "price": 5500,
+    "sell": 2200,
+    "buyable": true
+  },
+  "colossus-blade": {
+    "name": "Colossus Blade",
+    "emoji": "⚔️",
+    "sell": 12000,
+    "buyable": false
+  },
+  "steel-ingot": {
+    "name": "Steel Ingot",
+    "emoji": "⚙️",
+    "sell": 140,
+    "buyable": false
+  },
+  "exp-scroll": {
+    "name": "EXP Scroll",
+    "emoji": "📜",
+    "price": 800,
+    "sell": 320,
+    "buyable": true
+  },
+  "pet-food": {
+    "name": "Pet Food",
+    "emoji": "🍖",
+    "price": 250,
+    "sell": 100,
+    "buyable": true
+  },
+  "bait": {
+    "name": "Bait",
+    "emoji": "🪱",
+    "price": 300,
+    "sell": 120,
+    "buyable": true
+  },
+  "anti-death-charm": {
+    "name": "Anti-Death Charm",
+    "emoji": "🧿",
+    "price": 2000,
+    "sell": 800,
+    "buyable": true
+  },
+  "strength-tonic": {
+    "name": "Strength Tonic",
+    "emoji": "🧪",
+    "price": 900,
+    "sell": 360,
+    "buyable": true
   }
 }

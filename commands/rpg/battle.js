@@ -81,6 +81,8 @@ const execute = async (client, message, args, commands) => {
   }
 
   const stats = db.getStats(user);
+  const tonicActive = Number(user.tonic) > 0;
+  if (tonicActive) stats.atk = Math.round(stats.atk * 1.2);
   const percent = user.hp / stats.maxHp;
 
   if (percent <= 0.1) {
@@ -163,9 +165,11 @@ const execute = async (client, message, args, commands) => {
       u.stats.battles += 1;
       u.stats.kills += kills;
       if (mode === "skill") u.lastSkill = now;
+      if (tonicActive) u.tonic = 0; // tonic habis setelah satu pertarungan
     });
 
     let text = `⚔️ *BATTLE ${MODES[mode].label} (${totalEnemy} Musuh)*\n\n`;
+    if (tonicActive) text += "🧪 Strength Tonic aktif (+20% ATK)\n\n";
     text += `❤️ HP: ${Math.max(0, playerHp)}/${stats.maxHp}\n`;
     text += `💥 Total damage: ${dealt}${missed ? ` | Miss: ${missed}` : ""}\n`;
     text += `────────────${log}\n────────────`;
@@ -206,11 +210,15 @@ const execute = async (client, message, args, commands) => {
 
       if (newly.length) text += `\n\n🏅 Achievements: ${newly.map((a) => a.name).join(", ")}`;
     } else {
+      const charm = Number(user.charm) > 0;
       db.updateUser(userId, (u) => {
-        u.lastDeath = now;
+        if (charm) u.charm = Math.max(0, (Number(u.charm) || 0) - 1);
+        else u.lastDeath = now;
         u.stats.deaths += 1;
       });
-      text += `\n\n💀 KALAH\nCooldown ${cdDeath / 1000} detik`;
+      text += charm
+        ? "\n\n💀 KALAH\n🧿 Anti-Death Charm terpakai — cooldown mati dilewati."
+        : `\n\n💀 KALAH\nCooldown ${cdDeath / 1000} detik`;
     }
 
     await client.sendMessage(sender, { text }, { quoted: message });

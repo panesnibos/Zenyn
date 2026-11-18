@@ -4,8 +4,9 @@ const { db } = require("../../lib/rpgdb");
 const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const bank = require("../../lib/bank");
+const { short } = require("../../lib/num");
 
-const rp = (n) => Number(n || 0).toLocaleString("id-ID");
+const rp = (n) => short(n || 0);
 
 const execute = async (client, message, args) => {
   const sender = message.key.remoteJid;

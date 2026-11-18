@@ -7,9 +7,10 @@ const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const { findItemDef } = require("../../lib/rpgitems");
 const auction = require("../../lib/auction");
+const { short } = require("../../lib/num");
 
 const left = (lot) => Math.max(0, Math.ceil((lot.endsAt - Date.now()) / 60000));
-const rp = (n) => Number(n || 0).toLocaleString("id-ID");
+const rp = (n) => short(n || 0);
 
 const rowText = (lot, i) =>
   `${i + 1}. ${lot.emoji} *${lot.name}* x${lot.qty}\n   ` +

@@ -200,5 +200,35 @@
       "Crystal": 6,
       "Diamond": 4
     }
+  },
+  "iron-ingot": {
+    "name": "Iron Ingot",
+    "emoji": "🔩",
+    "cost": 60,
+    "qty": 1,
+    "materials": {
+      "Ore": 3
+    }
+  },
+  "steel-ingot": {
+    "name": "Steel Ingot",
+    "emoji": "⚙️",
+    "cost": 120,
+    "qty": 1,
+    "materials": {
+      "Iron Ingot": 2,
+      "Ore": 1
+    }
+  },
+  "colossus-blade": {
+    "name": "Colossus Blade",
+    "emoji": "⚔️",
+    "cost": 7000,
+    "qty": 1,
+    "materials": {
+      "Iron Ingot": 20,
+      "Diamond": 3,
+      "Dragon Scale": 2
+    }
   }
 }

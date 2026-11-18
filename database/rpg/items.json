@@ -254,5 +254,78 @@
     "def": 15,
     "hp": 80,
     "goldBonus": 0.3
+  },
+  "silver-dagger": {
+    "name": "Silver Dagger",
+    "emoji": "🗡️",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Common",
+    "atk": 8
+  },
+  "hunter-bow": {
+    "name": "Hunter Bow",
+    "emoji": "🏹",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Uncommon",
+    "atk": 13
+  },
+  "obsidian-armor": {
+    "name": "Obsidian Armor",
+    "emoji": "🛡️",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Rare",
+    "def": 24
+  },
+  "vanguard-plate": {
+    "name": "Vanguard Plate",
+    "emoji": "🛡️",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Rare",
+    "def": 20,
+    "hp": 15
+  },
+  "phantom-cloak": {
+    "name": "Phantom Cloak",
+    "emoji": "🧥",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Epic",
+    "def": 38,
+    "hp": 25
+  },
+  "sage-amulet": {
+    "name": "Sage Amulet",
+    "emoji": "📿",
+    "type": "equipment",
+    "slot": "accessory",
+    "rarity": "Uncommon",
+    "hp": 20,
+    "goldBonus": 0.05
+  },
+  "merchant-ring": {
+    "name": "Merchant Ring",
+    "emoji": "💍",
+    "type": "equipment",
+    "slot": "accessory",
+    "rarity": "Rare",
+    "atk": 4,
+    "goldBonus": 0.15
+  },
+  "colossus-blade": {
+    "name": "Colossus Blade",
+    "emoji": "⚔️",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Legendary",
+    "atk": 78
+  },
+  "steel-ingot": {
+    "name": "Steel Ingot",
+    "emoji": "⚙️",
+    "type": "material"
   }
 }

@@ -4,8 +4,9 @@ const { db } = require("../../lib/rpgdb");
 const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const bm = require("../../lib/blackmarket");
+const { short } = require("../../lib/num");
 
-const rp = (n) => Number(n || 0).toLocaleString("id-ID");
+const rp = (n) => short(n || 0);
 const left = (endsAt) => {
   const m = Math.max(0, Math.round((endsAt - Date.now()) / 60000));
   return m >= 60 ? `${Math.floor(m / 60)}j ${m % 60}m` : `${m}m`;

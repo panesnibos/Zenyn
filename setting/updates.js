@@ -19,7 +19,11 @@ module.exports = [
       ".img resize/crop/compress dan .tts (teks jadi voice note)",
       ".ss: screenshot website (khusus premium, 2 limit)",
       ".fb: unduh video Facebook; .ytsearch: cari 5 video YouTube + tombol unduh",
-      ".hdr / .hd: enhance foto 2x auto-level (varian strong & soft khusus premium)"
+      ".hdr / .hd: enhance foto 2x auto-level (varian strong & soft khusus premium)",
+      "Format angka ringkas: gold/EXP di atas 10.000 tampil 12,3k / 13,2M / 2,5B",
+      "Gear baru di shop: Silver Dagger, Hunter Bow, Obsidian Armor, Vanguard Plate, Phantom Cloak, Sage Amulet, Merchant Ring",
+      "Colossus Blade (Legendary) lewat resep; resep bahan Iron Ingot & Steel Ingot ditambahkan",
+      "Consumable baru dengan .use: Exp Scroll (+150 EXP), Pet Food, Strength Tonic (+20% ATK 1 battle), Anti-Death Charm, Bait"
     ]
   },
   {

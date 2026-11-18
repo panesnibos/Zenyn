@@ -22,6 +22,7 @@ const nokos = require("./lib/nokos");
 const gwmonitor = require("./lib/gwmonitor");
 const antilink = require("./lib/antilink");
 const auction = require("./lib/auction");
+const { shortClient } = require("./lib/rpgnum");
 
 const loadedEnv = loadEnv();
 if (loadedEnv.length) logger.info(`env dimuat: ${loadedEnv.join(", ")}`);
@@ -253,8 +254,10 @@ async function connectBot() {
             let success = true;
             let finalCost = pending ? pending.cost : 0;
             try {
+              // command RPG: angka besar (gold/EXP) tampil ringkas k/M/B
+              const execClient = cmd.category === "rpg" ? shortClient(client) : client;
               const result = await commandContext.run({ category: cmd.category, name: cmd.name }, () =>
-                cmd.execute(client, message, args, commands, command.toLowerCase())
+                cmd.execute(execClient, message, args, commands, command.toLowerCase())
               );
               if (result === false) success = false;
               else if (result && typeof result === "object" && result.limitCost !== undefined) {
