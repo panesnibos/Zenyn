@@ -46,6 +46,8 @@ test("item: premium key hanya di pasar, stok 2, dan bisa dibuka", () => {
   assert.match(text, /5\.500 gold/);
   assert.match(text, /stok 2\/sesi/);
   assert.match(text, /\.open premium-key/);
+  assert.match(text, /Isi crate/);
+  assert.match(text, /Elixir x2/);
 });
 
 test("item: scroll baru menampilkan efek", () => {
