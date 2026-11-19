@@ -5,17 +5,10 @@ const { getPrefix } = require("../../lib/prefix");
 const { findItemDef } = require("../../lib/rpgitems");
 const { randInt } = require("../../lib/rpgcombat");
 const { cd } = require("../../lib/rpglimit");
+const { SPOTS } = require("../../lib/gatherspots");
 
 const COOLDOWN = 25000;
 const COOLDOWN_PREMIUM = 15000;
-
-const SPOTS = {
-  fish: { label: "Memancing", main: "fish", emoji: "🎣", rare: "rare-fish" },
-  mine: { label: "Menambang", main: "ore", emoji: "⛏️", rare: "mithril-ore" },
-  chop: { label: "Menebang", main: "wood", emoji: "🪓", rare: "hardwood" },
-  wood: { label: "Menebang", main: "wood", emoji: "🪓", rare: "hardwood" },
-  herb: { label: "Mencari herbal", main: "herb", emoji: "🌿", rare: "moon-herb" }
-};
 
 // tambang dalam: butuh level, cooldown lebih lama, tapi ada mithril/crystal/diamond
 const DEEP_CD = 40000;

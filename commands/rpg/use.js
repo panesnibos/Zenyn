@@ -5,6 +5,7 @@ const { db } = require("../../lib/rpgdb");
 const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const { findItemDef } = require("../../lib/rpgitems");
+const { guarded } = require("../../lib/featureutil");
 
 const MAX_LEVEL = 30;
 const expNeed = (level) => Math.floor(50 * level * 1.4);
@@ -13,6 +14,11 @@ const expNeed = (level) => Math.floor(50 * level * 1.4);
 const CONSUMABLES = {
   "exp-scroll": (user, qty) => {
     const target = 150 * qty;
+    db.addExp(user.id, target);
+    return `📜 +${target} EXP`;
+  },
+  "ancient-scroll": (user, qty) => {
+    const target = 500 * qty;
     db.addExp(user.id, target);
     return `📜 +${target} EXP`;
   },
@@ -100,5 +106,5 @@ module.exports = {
   visible: true,
   description: "Pakai consumable: EXP Scroll, Pet Food, Tonic, Charm, Bait",
   subcommands: ["<item> [jumlah]"],
-  execute
+  execute: guarded("use", execute)
 };

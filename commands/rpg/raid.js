@@ -291,11 +291,11 @@ const execute = async (client, message, args, commands, commandName) => {
 
   // menu utama
   if (!action) {
-    return client.sendButtons(sender, {
+    return client.sendInteractiveMessage(sender, {
       title: "🐉 Raid Boss",
       text: menuText(user, groupState, worldState),
-      footer: `Cooldown serang ${ATTACK_CD / 1000} detik`,
-      buttons: menuButtons()
+      tip: `Cooldown serang ${ATTACK_CD / 1000} detik`,
+      interactiveButtons: menuButtons()
     }, { quoted: message });
   }
 
@@ -307,11 +307,11 @@ const execute = async (client, message, args, commands, commandName) => {
       );
       return false;
     }
-    return client.sendButtons(sender, {
+    return client.sendInteractiveMessage(sender, {
       title: "🎯 Pilih Boss",
       text: `${groupState?.active ? bossBlock(groupState, "Boss grup") : "Boss grup: belum ada"}\n\n${worldState?.active ? bossBlock(worldState, "World boss") : "World boss: belum ada"}`,
-      footer: "Serang sesuai target",
-      buttons: [{ name: "single_select", buttonParamsJson: JSON.stringify({ title: "Pilih Boss", sections: [{ title: "Boss", rows }] }) }]
+      tip: "Serang sesuai target",
+      interactiveButtons: [{ name: "single_select", buttonParamsJson: JSON.stringify({ title: "Pilih Boss", sections: [{ title: "Boss", rows }] }) }]
     }, { quoted: message });
   }
 

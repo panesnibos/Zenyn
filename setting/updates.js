@@ -7,7 +7,15 @@ module.exports = [
       "Tombol/list di chat pribadi dikirim sebagai teks + perintah ketik (menu, nokos, premium, register, addbot, catur, tebak, dll) supaya tampil di PC maupun HP",
       "Di grup tombol tetap seperti biasa; link Join Group di DM tampil sebagai URL teks",
       "Saldo Rp per pembeli: dana nokos yang gagal otomatis masuk saldo (bukan refund manual)",
-      "Saldo bisa dipakai untuk nokos, premium, dan sewa bot; cek dengan .saldo"
+      "Saldo bisa dipakai untuk nokos, premium, dan sewa bot; cek dengan .saldo",
+      ".raid diperbaiki: menu dan pilih boss tampil lagi (sebelumnya gagal kirim tombol)",
+      "Log lebih rapi: kesalahan input pemain dicatat WARN, bukan ERROR (mis. .use item yang tidak punya)",
+      "Pasar gelap baru: buka 06:00-12:00 dan 18:00-00:00 WIB, stok per pemain per sesi, kuota 7 item/hari",
+      "Pasar gelap punya dua pilihan: Global (belum dibuka) dan Pribadi",
+      "Kunci keluar dari toko: premium key hanya di Pasar Gelap (stok 2), bronze key dari daily, dungeon, dan pasar",
+      "Bahan baru Void Shard & Shadow Silk hanya di Pasar Gelap",
+      "Resep baru: Smugglers Blade, Nightshade Armor, Cutthroat Ring, Ancient Scroll (+500 EXP)",
+      "Command baru .item: lihat stat, sumber, bahan craft, dan harga jual item"
     ]
   },
   {

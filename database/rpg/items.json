@@ -327,5 +327,50 @@
     "name": "Steel Ingot",
     "emoji": "⚙️",
     "type": "material"
+  },
+  "void-shard": {
+    "name": "Void Shard",
+    "emoji": "💠",
+    "type": "material"
+  },
+  "shadow-silk": {
+    "name": "Shadow Silk",
+    "emoji": "🕸️",
+    "type": "material"
+  },
+  "smugglers-blade": {
+    "name": "Smugglers Blade",
+    "emoji": "🗡️",
+    "type": "equipment",
+    "slot": "weapon",
+    "rarity": "Rare",
+    "atk": 22,
+    "goldBonus": 0.15,
+    "noDrop": true
+  },
+  "nightshade-armor": {
+    "name": "Nightshade Armor",
+    "emoji": "🥷",
+    "type": "equipment",
+    "slot": "armor",
+    "rarity": "Rare",
+    "def": 20,
+    "hp": 40,
+    "noDrop": true
+  },
+  "cutthroat-ring": {
+    "name": "Cutthroat Ring",
+    "emoji": "💍",
+    "type": "equipment",
+    "slot": "accessory",
+    "rarity": "Epic",
+    "atk": 7,
+    "def": 7,
+    "noDrop": true
+  },
+  "ancient-scroll": {
+    "name": "Ancient Scroll",
+    "emoji": "📜",
+    "type": "consumable"
   }
 }

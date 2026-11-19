@@ -16,16 +16,20 @@
   "bronze-key": {
     "name": "Bronze-key",
     "emoji": "🔑",
-    "price": 630,
+    "price": 1600,
     "sell": 169,
-    "buyable": true
+    "buyable": false,
+    "bmOnly": true,
+    "bmStock": 5
   },
   "premium-key": {
     "name": "premium-key",
     "emoji": "🗝️",
-    "price": 2500,
+    "price": 5500,
     "sell": 1000,
-    "buyable": true
+    "buyable": false,
+    "bmOnly": true,
+    "bmStock": 2
   },
   "diamond": {
     "name": "Diamond",
@@ -297,5 +301,47 @@
     "price": 900,
     "sell": 360,
     "buyable": true
+  },
+  "void-shard": {
+    "name": "Void Shard",
+    "emoji": "💠",
+    "price": 1500,
+    "sell": 600,
+    "buyable": false,
+    "bmOnly": true,
+    "bmStock": 3
+  },
+  "shadow-silk": {
+    "name": "Shadow Silk",
+    "emoji": "🕸️",
+    "price": 1800,
+    "sell": 700,
+    "buyable": false,
+    "bmOnly": true,
+    "bmStock": 3
+  },
+  "smugglers-blade": {
+    "name": "Smugglers Blade",
+    "emoji": "🗡️",
+    "sell": 2600,
+    "buyable": false
+  },
+  "nightshade-armor": {
+    "name": "Nightshade Armor",
+    "emoji": "🥷",
+    "sell": 2800,
+    "buyable": false
+  },
+  "cutthroat-ring": {
+    "name": "Cutthroat Ring",
+    "emoji": "💍",
+    "sell": 4400,
+    "buyable": false
+  },
+  "ancient-scroll": {
+    "name": "Ancient Scroll",
+    "emoji": "📜",
+    "sell": 600,
+    "buyable": false
   }
 }

@@ -48,8 +48,9 @@ const execute = async (client, message, args, commands) => {
     db.addMoney(userId, reward.money);
     const expResult = db.addExp(userId, reward.exp);
     db.setDaily(userId);
+    db.addItem(userId, { name: "Bronze-key", emoji: "🔑", qty: 1 });
 
-    let text = `🎁 *DAILY REWARD*\n\n💰 Money: +${reward.money}\n✨ EXP: +${reward.exp}`;
+    let text = `🎁 *DAILY REWARD*\n\n💰 Money: +${reward.money}\n✨ EXP: +${reward.exp}\n🔑 Bronze-key: +1`;
 
     if (expResult?.levelUp) {
       const updated = db.getUser(userId);

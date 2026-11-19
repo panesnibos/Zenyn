@@ -84,7 +84,7 @@ test("rpg content: bahan baru tercatat di items dan dipakai resep/sumber drop", 
   for (const key of ["mithril-ore", "crystal", "dragon-scale", "rare-fish", "hardwood", "moon-herb"]) {
     assert.equal(items[key]?.type, "material", `bahan hilang: ${key}`);
   }
-  const source = ["commands/rpg/gather.js", "commands/rpg/battle.js", "commands/rpg/dungeon.js"]
+  const source = ["commands/rpg/gather.js", "lib/gatherspots.js", "commands/rpg/battle.js", "commands/rpg/dungeon.js"]
     .map((f) => fs.readFileSync(path.join(root, f), "utf8"))
     .join("\n");
   for (const key of ["mithril-ore", "crystal", "diamond", "rare-fish", "hardwood", "moon-herb"]) {

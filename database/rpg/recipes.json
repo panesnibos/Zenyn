@@ -230,5 +230,49 @@
       "Diamond": 3,
       "Dragon Scale": 2
     }
+  },
+  "smugglers-blade": {
+    "name": "Smugglers Blade",
+    "emoji": "🗡️",
+    "cost": 2000,
+    "qty": 1,
+    "materials": {
+      "Iron Ingot": 5,
+      "Hardwood": 3,
+      "Void Shard": 1
+    }
+  },
+  "nightshade-armor": {
+    "name": "Nightshade Armor",
+    "emoji": "🥷",
+    "cost": 2500,
+    "qty": 1,
+    "materials": {
+      "Steel Ingot": 4,
+      "Moon Herb": 4,
+      "Shadow Silk": 2
+    }
+  },
+  "cutthroat-ring": {
+    "name": "Cutthroat Ring",
+    "emoji": "💍",
+    "cost": 4000,
+    "qty": 1,
+    "materials": {
+      "Mithril Ore": 2,
+      "Crystal": 1,
+      "Void Shard": 2
+    }
+  },
+  "ancient-scroll": {
+    "name": "Ancient Scroll",
+    "emoji": "📜",
+    "cost": 1500,
+    "qty": 1,
+    "materials": {
+      "Herb": 8,
+      "Moon Herb": 3,
+      "Void Shard": 1
+    }
   }
 }

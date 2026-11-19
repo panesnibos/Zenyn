@@ -143,9 +143,13 @@ test("use: tanpa item / item tak bisa dipakai / stok kurang", async () => {
   await cmd.execute(client, message(), [], {}, "use");
   assert.match(sent.at(-1), /PAKAI ITEM/);
 
-  await assert.rejects(() => cmd.execute(client, message(), ["potion"], {}, "use"), /tidak bisa dipakai|Pakai/);
-  await assert.rejects(() => cmd.execute(client, message(), ["exp", "scroll", "5"], {}, "use"), /tidak punya/);
-  await assert.rejects(() => cmd.execute(client, message(), ["barang", "ajaib"], {}, "use"), /tidak dikenal/);
+  // guarded: validasi dibalas pesan asli, bukan exception
+  assert.equal(await cmd.execute(client, message(), ["potion"], {}, "use"), false);
+  assert.match(sent.at(-1), /tidak bisa dipakai|Pakai/);
+  assert.equal(await cmd.execute(client, message(), ["exp", "scroll", "5"], {}, "use"), false);
+  assert.match(sent.at(-1), /tidak punya/);
+  assert.equal(await cmd.execute(client, message(), ["barang", "ajaib"], {}, "use"), false);
+  assert.match(sent.at(-1), /tidak dikenal/);
 });
 
 test("battle & gather sudah memakai tonic/charm/bait", () => {

@@ -44,7 +44,7 @@ const execute = async (client, message, args, commands, commandName) => {
 
     const recipe = getRecipe(id);
     if (!recipe) {
-      return await client.sendMessage(sender, { text: "❌ Recipe tidak ditemukan." }, { quoted: message });
+      return await client.sendMessage(sender, { text: `❌ Recipe tidak ditemukan.\nℹ️ Ketik *${p}item <nama>* untuk cek item & resepnya.` }, { quoted: message });
     }
 
     if (user.money < recipe.cost) {
@@ -54,7 +54,7 @@ const execute = async (client, message, args, commands, commandName) => {
     for (const [matName, qty] of Object.entries(recipe.materials)) {
       const name = findItemDef(matName)?.name || matName;
       if (!db.hasItem(userId, name, qty)) {
-        return await client.sendMessage(sender, { text: `❌ Material kurang: ${name} x${qty}` }, { quoted: message });
+        return await client.sendMessage(sender, { text: `❌ Material kurang: ${name} x${qty}\nℹ️ Ketik *${p}item ${name}* untuk lihat cara mendapatkannya.` }, { quoted: message });
       }
     }
 

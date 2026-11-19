@@ -5,6 +5,7 @@ const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const bank = require("../../lib/bank");
 const { short } = require("../../lib/num");
+const { guarded } = require("../../lib/featureutil");
 
 const rp = (n) => short(n || 0);
 
@@ -65,5 +66,5 @@ module.exports = {
   visible: true,
   description: "Tabungan gold dengan bunga 0.5%/hari (maks 50.000)",
   subcommands: ["setor <gold>", "tarik <gold>", "top"],
-  execute
+  execute: guarded("bank", execute)
 };

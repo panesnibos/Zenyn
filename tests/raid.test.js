@@ -63,9 +63,9 @@ const loadRaid = () => {
   const db = makeDb();
   const sent = [];
   const client = {
-    sendMessage: async (jid, payload) => { sent.push({ jid, payload }); return { key: { id: "s" } }; },
-    sendButtons: async (jid, payload) => { sent.push({ jid, payload }); return { key: { id: "b" } }; },
-    sendInteractiveMessage: async (jid, payload) => { sent.push({ jid, payload }); return { key: { id: "i" } }; }
+    sendMessage: async (jid, payload) => { sent.push({ jid, payload, via: "text" }); return { key: { id: "s" } }; },
+    sendButtons: async (jid, payload) => { sent.push({ jid, payload, via: "buttons" }); return { key: { id: "b" } }; },
+    sendInteractiveMessage: async (jid, payload) => { sent.push({ jid, payload, via: "interactive" }); return { key: { id: "i" } }; }
   };
   const cmd = loadMocked("commands/rpg/raid.js", {
     "../../lib/logger": quiet,
@@ -78,7 +78,7 @@ const loadRaid = () => {
 
 const message = (uid, chat = "120363000000@g.us") => ({ uid, key: { remoteJid: chat }, pushName: `P${uid}`, message: { conversation: ".raid" } });
 const lastText = (sent) => sent.at(-1).payload.text || sent.at(-1).payload.caption || "";
-const rowsOf = (sent) => JSON.parse(sent.at(-1).payload.buttons[0].buttonParamsJson).sections[0].rows;
+const rowsOf = (sent) => JSON.parse(sent.at(-1).payload.interactiveButtons[0].buttonParamsJson).sections[0].rows;
 
 test("raid: gelar level 1-200 dan nama grup vs world berbeda", () => {
   const { cmd } = loadRaid();
@@ -126,7 +126,8 @@ test("raid: menu menampilkan dua pool boss dan tombol list", async () => {
   assert.match(text, /Boss grup : belum ada boss/);
   assert.match(text, /Shadow Wyrm/);
   assert.match(text, /Chrono Leviathan/);
-  assert.equal(sent.at(-1).payload.buttons[0].name, "single_select");
+  assert.equal(sent.at(-1).via, "interactive", "menu memakai sendInteractiveMessage");
+  assert.equal(sent.at(-1).payload.interactiveButtons[0].name, "single_select");
   const ids = rowsOf(sent).map((r) => r.id);
   for (const id of ["raid attack", "raid join", "raid wb", "raid status", "raid top"]) assert.ok(ids.includes(id), id);
 });
@@ -141,6 +142,7 @@ test("raid join: tanpa boss -> pesan tidak ada, dengan boss -> picker", async ()
   const ids = rowsOf(sent).map((r) => r.id);
   assert.ok(ids.includes("raid attack"), "picker memuat boss grup");
   assert.ok(res);
+  assert.ok(!sent.some((s) => s.via === "buttons"), "tidak boleh pakai sendButtons native-flow");
 });
 
 test("raid attack: boss kehilangan HP, player kena balasan, cooldown 2 detik", async () => {

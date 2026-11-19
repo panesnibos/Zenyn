@@ -85,6 +85,11 @@ const execute = async (client, message, args, commands, commandName) => {
           db.addItem(userId, { name: "Diamond", emoji: "💎", qty: 1 });
           loot = `${loot ? loot + ", " : ""}💎 Diamond`;
         }
+        // kunci bronze: jalur grind selain daily & pasar gelap
+        if (floor >= 5 && Math.random() < 0.2) {
+          db.addItem(userId, { name: "Bronze-key", emoji: "🔑", qty: 1 });
+          loot = `${loot ? loot + ", " : ""}🔑 Bronze-key`;
+        }
 
         const newly = db.checkAchievements(userId);
 

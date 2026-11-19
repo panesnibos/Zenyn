@@ -286,8 +286,14 @@ async function connectBot() {
               }
             } catch (err) {
               success = false;
-              logger.error(`command ${command}: ${err.message}`);
-              await client.sendMessage(sender, { text: "❌ Error executing command" }, { quoted: message });
+              if (err && err.user) {
+                // validasi pemakaian (bukan bug): jangan dicatat sebagai ERROR
+                logger.warn(`command ${command}: ${err.message}`);
+                await client.sendMessage(sender, { text: `❌ ${err.message}` }, { quoted: message });
+              } else {
+                logger.error(`command ${command}: ${err.message}`);
+                await client.sendMessage(sender, { text: "❌ Error executing command" }, { quoted: message });
+              }
             }
 
             if (success && pending) {

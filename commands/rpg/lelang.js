@@ -8,6 +8,7 @@ const { getPrefix } = require("../../lib/prefix");
 const { findItemDef } = require("../../lib/rpgitems");
 const auction = require("../../lib/auction");
 const { short } = require("../../lib/num");
+const { guarded } = require("../../lib/featureutil");
 
 const left = (lot) => Math.max(0, Math.ceil((lot.endsAt - Date.now()) / 60000));
 const rp = (n) => short(n || 0);
@@ -136,5 +137,5 @@ module.exports = {
   visible: true,
   description: "Auction house: lelang item antar pemain (bid/buyout, pajak 5%)",
   subcommands: ["jual <item> <qty> <awal> [buyout]", "bid <nomor> <gold>", "beli <nomor>", "batal <nomor>", "saya"],
-  execute
+  execute: guarded("lelang", execute)
 };
