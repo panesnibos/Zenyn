@@ -2,6 +2,13 @@
 // Satu entri per tanggal (WIB). Teks dibuat polos supaya gampang disalin.
 module.exports = [
   {
+    date: "2026-11-19",
+    items: [
+      "Tombol/list di chat pribadi dikirim sebagai teks + perintah ketik (menu, nokos, premium, register, addbot, catur, tebak, dll) supaya tampil di PC maupun HP",
+      "Di grup tombol tetap seperti biasa; link Join Group di DM tampil sebagai URL teks"
+    ]
+  },
+  {
     date: "2026-11-18",
     items: [
       "Lelang item antar pemain: .lelang jual/bid/beli/batal/saya — 10 menit, anti-snipe, pajak 5%",

@@ -6,7 +6,7 @@ const pino = require("pino");
 const { loadEnv } = require("./lib/env");
 const config = require("./config");
 const helper = require("baileys_helper");
-const { withMentions } = require("./lib/interactivepayload");
+const { withMentions, dmSafe } = require("./lib/interactivepayload");
 const { loadCommands } = require("./lib/commandLoader");
 const logger = require("./lib/logger");
 const { footerFor } = require("./lib/tips");
@@ -103,19 +103,40 @@ async function connectBot() {
     });
 
     client.sendInteractiveMessage = async (jid, messageConfig, options = {}) => {
-      const { text, title, tip, interactiveButtons, buttons = [] } = messageConfig;
+      const safe = dmSafe(jid, messageConfig);
+      const full = safe.interactiveButtons || safe.buttons || [];
+
+      // DM: tombol tidak dirender klien, jadi kirim teks + perintah ketik.
+      if (!full.length) {
+        logger.cmd(`interactive->teks ${jid}`);
+        const body = { text: safe.text };
+        if (safe.mentions) body.mentions = safe.mentions;
+        return await client.sendMessage(jid, body, options);
+      }
+
+      const { text, title, tip, interactiveButtons, buttons = [] } = safe;
       const helperConfig = {
         text: text,
         footer: tip || currentFooter(jid),
         interactiveButtons: interactiveButtons || buttons
       };
       if (title) helperConfig.title = title;
-      return await helper.sendInteractiveMessage(client, jid, withMentions(helperConfig, messageConfig.mentions), options);
+      return await helper.sendInteractiveMessage(client, jid, withMentions(helperConfig, safe.mentions), options);
     };
 
     client.sendButtons = async (jid, messageConfig, options = {}) => {
-      const footer = messageConfig.tip || currentFooter(jid);
-      return await helper.sendButtons(client, jid, { ...messageConfig, footer }, options);
+      const safe = dmSafe(jid, messageConfig);
+      const full = safe.interactiveButtons || safe.buttons || [];
+
+      if (!full.length) {
+        logger.cmd(`buttons->teks ${jid}`);
+        const body = { text: safe.text };
+        if (safe.mentions) body.mentions = safe.mentions;
+        return await client.sendMessage(jid, body, options);
+      }
+
+      const footer = safe.tip || currentFooter(jid);
+      return await helper.sendButtons(client, jid, { ...safe, footer }, options);
     };
 
     if (!state.creds.registered) {
