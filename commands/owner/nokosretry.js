@@ -6,13 +6,13 @@ const { getPrefix } = require("../../lib/prefix");
 const autopay = require("../../lib/autopay");
 const nokos = require("../../lib/nokos");
 
-const failedNokos = () => autopay.list((i) => i.kind === "nokos" && i.status === "failed");
+const failedNokos = () => autopay.list(autopay.retryableNokos);
 
 const listText = (p, list) => {
   if (!list.length) return "✅ Tidak ada tagihan nomor virtual yang gagal.";
   const lines = list.slice(0, 10).map(
     (i) =>
-      `• *${i.id}* — ${i.title}\n  Pembeli: ${i.buyer} | ${autopay.rp(i.payAmount)}\n  Sebab: ${i.note || "-"}`
+      `• *${i.id}* — ${i.title}\n  Pembeli: ${i.buyer} | ${autopay.rp(i.payAmount)}\n  Sebab: ${i.note || "nomor gagal sebelum OTP masuk"}`
   );
   return [
     "🧾 *TAGIHAN NOKOS GAGAL*",
@@ -46,7 +46,7 @@ const execute = async (client, message, args) => {
 
   try {
     await autopay.retryNokos(inv);
-    const rec = nokos.get(inv.id);
+    const rec = nokos.latest(inv.id);
     logger.cmd(`nokosretry: ${id} -> ${rec?.orderId || "-"} oleh ${message.key.participant || sender}`);
 
     return client.sendMessage(

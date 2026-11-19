@@ -53,6 +53,7 @@ const nokosArgs = { uid: "628100000001", name: "Uji", chat: "chat@s.whatsapp.net
 
 test("createNokos: saldo kurang -> tolak sebelum tagihan QRIS dibuat", async () => {
   const { autopay, calls } = loadAutopay({ balance: 0 });
+  assert.equal(typeof autopay.requireBalance, "function", "nokos.replace butuh requireBalance dari autopay");
   await assert.rejects(() => autopay.createNokos(nokosArgs), /saldo habis/i);
   assert.equal(calls.deposit, 0, "createDeposit tidak boleh dipanggil saat saldo habis");
 });

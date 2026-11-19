@@ -24,8 +24,8 @@ const loadMocked = (relative, mocks = {}) => {
   return mod.exports;
 };
 
-const loadNokos = ({ status = "expired", maxReplace = 3 } = {}) => {
-  const calls = { cancel: 0, order: 0, alerts: 0 };
+const loadNokos = ({ status = "expired", maxReplace = 3, balanceFails = false } = {}) => {
+  const calls = { cancel: 0, order: 0, alerts: 0, invoiceFailed: 0 };
   let seq = 0;
   const config = {
     prefixes: ["."],
@@ -48,7 +48,14 @@ const loadNokos = ({ status = "expired", maxReplace = 3 } = {}) => {
     "../config": config,
     "./autoorder": ao,
     "./rpgjson": { readJson: () => ({}), writeJson: () => {} },
-    "./autopay": { requireBalance: async () => {} }
+    "./autopay": {
+      requireBalance: async () => {
+        if (balanceFails) throw new Error("Saldo AutoOrder habis.");
+      },
+      markNokosFailed: () => {
+        calls.invoiceFailed++;
+      }
+    }
   });
   return { nokos, calls };
 };
@@ -95,6 +102,18 @@ test("batas ganti habis: tidak buat order baru, status failed", async () => {
 
   assert.equal(calls.order, 1, "hanya order awal");
   assert.equal(nokos.get(o.apiId).status, "failed");
+  assert.equal(calls.invoiceFailed, 1, "invoice harus ikut failed supaya bisa di-retry");
+});
+
+test("saldo kurang saat ganti nomor: order failed, invoice ditandai gagal", async () => {
+  const { nokos, calls } = loadNokos({ balanceFails: true });
+  const o = await nokos.createOrder(inv);
+
+  await nokos.check(o);
+
+  assert.equal(calls.order, 1, "tidak ada nomor baru tanpa saldo");
+  assert.equal(nokos.get(o.apiId).status, "failed");
+  assert.equal(calls.invoiceFailed, 1);
 });
 
 test("deadline ganti = 10 menit dari createdAt", async () => {

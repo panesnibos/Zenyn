@@ -24,14 +24,15 @@ const loadMocked = (relative, mocks = {}) => {
   return mod.exports;
 };
 
-const loadAutopay = ({ orderFails = false } = {}) => {
+const loadAutopay = ({ orderFails = false, latest = null } = {}) => {
   const calls = { order: 0 };
   const nokos = {
     createOrder: async (inv) => {
       calls.order++;
       if (orderFails) throw new Error("Saldo akun Anda tidak mencukupi untuk memesan nomor virtual ini.");
       return { orderId: "ord1", serviceName: inv.serviceName, country: inv.countryName, phone: "+62001" };
-    }
+    },
+    latest: () => latest
   };
   const ao = { enabled: () => true, balance: async () => ({ balance: 0 }) };
   const db = { getUser: () => ({}), setStatus: () => {} };
@@ -78,9 +79,24 @@ test("retryNokos: bukan tagihan nokos -> ditolak", async () => {
   assert.equal(calls.order, 0);
 });
 
-test("retryNokos: sudah done -> ditolak", async () => {
-  const { autopay } = loadAutopay();
-  await assert.rejects(() => autopay.retryNokos({ ...failedInv(), status: "done" }), /hanya "failed"/);
+test("retryNokos: status done tanpa order mati -> ditolak", async () => {
+  const { autopay } = loadAutopay({ latest: { status: "pending", otp: "" } });
+  await assert.rejects(() => autopay.retryNokos({ ...failedInv(), status: "done" }), /hanya invoice/);
+});
+
+test("retryNokos: done tapi order terakhir failed tanpa OTP -> diulang", async () => {
+  const { autopay, calls } = loadAutopay({ latest: { status: "failed", otp: "" } });
+  const inv = { ...failedInv(), status: "done", note: "" };
+  const out = await autopay.retryNokos(inv);
+  assert.equal(calls.order, 1);
+  assert.equal(out.status, "done");
+  assert.ok(out.retriedAt > 0);
+});
+
+test("retryNokos: OTP sudah pernah masuk -> ditolak", async () => {
+  const { autopay, calls } = loadAutopay({ latest: { status: "done", otp: "123456" } });
+  await assert.rejects(() => autopay.retryNokos({ ...failedInv(), status: "done" }), /hanya invoice/);
+  assert.equal(calls.order, 0);
 });
 
 test("retryNokos: saldo kurang -> status balik failed + note terisi", async () => {
