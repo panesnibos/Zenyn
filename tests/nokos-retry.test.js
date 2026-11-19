@@ -41,7 +41,8 @@ const loadAutopay = ({ orderFails = false, latest = null } = {}) => {
     "./nokos": nokos,
     "./rpgjson": { readJson: () => ({}), writeJson: () => {} },
     "./rpgdb": { db },
-    "./addbot": {}
+    "./addbot": {},
+    "./saldo": { add: () => 0, get: () => 0, sub: () => 0, rp: (n) => `Rp${n}` }
   });
   return { autopay, calls };
 };

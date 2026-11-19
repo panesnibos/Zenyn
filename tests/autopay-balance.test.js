@@ -44,7 +44,8 @@ const loadAutopay = ({ balance, onDeposit }) => {
   const autopay = loadMocked("lib/autopay.js", {
     "./autoorder": ao,
     "./rpgjson": json,
-    "./rpgdb": { db }
+    "./rpgdb": { db },
+    "./saldo": { get: () => 0, sub: () => { throw new Error("Saldo tidak cukup."); }, add: () => 0, rp: (n) => `Rp${n}` }
   });
   return { autopay, calls };
 };

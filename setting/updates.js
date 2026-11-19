@@ -5,7 +5,9 @@ module.exports = [
     date: "2026-11-19",
     items: [
       "Tombol/list di chat pribadi dikirim sebagai teks + perintah ketik (menu, nokos, premium, register, addbot, catur, tebak, dll) supaya tampil di PC maupun HP",
-      "Di grup tombol tetap seperti biasa; link Join Group di DM tampil sebagai URL teks"
+      "Di grup tombol tetap seperti biasa; link Join Group di DM tampil sebagai URL teks",
+      "Saldo Rp per pembeli: dana nokos yang gagal otomatis masuk saldo (bukan refund manual)",
+      "Saldo bisa dipakai untuk nokos, premium, dan sewa bot; cek dengan .saldo"
     ]
   },
   {

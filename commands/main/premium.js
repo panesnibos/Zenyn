@@ -155,7 +155,7 @@ const execute = async (client, message, args) => {
       );
     }
 
-    if (isGroup && ok && target !== sender) {
+    if (isGroup && ok && target !== sender && inv.method !== autopay.SALDO) {
       await client.sendMessage(
         sender,
         {

@@ -132,7 +132,7 @@ const execute = async (client, message, args) => {
       );
     }
 
-    if (isGroup && ok && target !== sender) {
+    if (isGroup && ok && target !== sender && inv.method !== autopay.SALDO) {
       await client.sendMessage(
         sender,
         { text: `📩 Tagihan *${inv.id}* (${pkg.label}) sudah dikirim ke chat pribadi kamu.` },

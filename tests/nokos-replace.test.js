@@ -48,6 +48,7 @@ const loadNokos = ({ status = "expired", maxReplace = 3, balanceFails = false } 
     "../config": config,
     "./autoorder": ao,
     "./rpgjson": { readJson: () => ({}), writeJson: () => {} },
+    "./saldo": { add: () => 0, get: () => 0, sub: () => 0, rp: (n) => `Rp${n}` },
     "./autopay": {
       requireBalance: async () => {
         if (balanceFails) throw new Error("Saldo AutoOrder habis.");
