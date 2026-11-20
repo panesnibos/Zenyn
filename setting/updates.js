@@ -14,7 +14,13 @@ module.exports = [
       "Black Market: total 10 unit per sesi, 6-9 baris, bahan rotasi + promo diskon",
       "Player market dua arah: Barang Dijual dan Dicari Pembeli (gold pembeli ditahan)",
       "Dungeon diperpanjang sampai floor 200; tiap 20 floor dapat premium key (total 10 key)",
-      "Boss dungeon di atas floor 50 diskalakan ulang (tidak one-shot) dan equipment Epic mulai floor 100"
+      "Boss dungeon di atas floor 50 diskalakan ulang (tidak one-shot) dan equipment Epic mulai floor 100",
+      "Greater Potion sekarang benar-benar bisa dipakai lewat .heal atau tombol menu",
+      "Prestige mereset progres dungeon ke floor 1; batas dungeon naik 50 tiap prestige (maks 500)",
+      "Premium key dungeon diberikan tiap 25 floor (25, 50, 75, dst)",
+      "Transfer gold dibatasi cooldown 30 detik",
+      "Market: listing & buy order kedaluwarsa 3 hari, barang dan gold dikembalikan otomatis",
+      ".inventory menampilkan level upgrade (+N) pada equipment"
     ]
   },
   {

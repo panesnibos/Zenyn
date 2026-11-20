@@ -34,11 +34,11 @@ const execute = async (client, message, args, commands, commandName) => {
   try {
     // ================= MENU HEAL =================
     if (!heals[commandName]) {
-      const rows = Object.values(heals).map((item) => {
+      const rows = Object.entries(heals).map(([key, item]) => {
         const inv = getItem(item.name);
         const qty = inv ? inv.qty : 0;
         return {
-          id: item.name,
+          id: key,
           title: `${item.emoji} ${item.name}`,
           description: `+${item.effect} HP | Qty: ${qty}`
         };
@@ -65,19 +65,19 @@ const execute = async (client, message, args, commands, commandName) => {
       return await client.sendMessage(sender, { text: "❤️ HP kamu sudah penuh!" }, { quoted: message });
     }
 
-    const item = getItem(commandName);
+    const item = getItem(itemData.name);
     if (!item || item.qty <= 0) {
       return await client.sendMessage(sender, { text: `❌ Kamu tidak punya ${itemData.name}` }, { quoted: message });
     }
 
-    let newHp = Math.min(db.getStats(user).maxHp, user.hp + itemData.effect);
-    db.removeItem(userId, commandName, 1);
+    const newHp = Math.min(stats.maxHp, user.hp + itemData.effect);
+    db.removeItem(userId, itemData.name, 1);
     db.setHp(userId, newHp);
     db.addQuestProgress(userId, "heal", 1);
     db.checkAchievements(userId);
 
     return await client.sendMessage(sender, {
-      text: `${itemData.emoji} ${itemData.name} digunakan!\n+${itemData.effect} HP\n\n❤️ ${newHp}/${user.maxHp}`
+      text: `${itemData.emoji} ${itemData.name} digunakan!\n+${itemData.effect} HP\n\n❤️ ${newHp}/${stats.maxHp}`
     }, { quoted: message });
 
   } catch (err) {

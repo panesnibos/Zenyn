@@ -4,10 +4,17 @@ const { getUserId, makeBar } = require("../../lib/rpgutil");
 const { simulateFight, equipmentDrop, randInt } = require("../../lib/rpgcombat");
 const { cd } = require("../../lib/rpglimit");
 
-const MAX_FLOOR = 200;
+const BASE_FLOOR = 200;
+const FLOOR_PER_PRESTIGE = 50;
+const MAX_FLOOR = 500;
+const KEY_STEP = 25;
 const COOLDOWN = 10000;
 const COOLDOWN_PREMIUM = 6000;
 const FIGHT_ROUNDS = 60;
+
+// batas dungeon naik 50 floor tiap prestige, mentok 500
+const maxFloorFor = (user) =>
+  Math.min(MAX_FLOOR, BASE_FLOOR + FLOOR_PER_PRESTIGE * (Number(user?.prestige) || 0));
 
 // floor 1-50 tetap seperti formula lama; di atasnya naik lewat HP/DEF saja
 const floorBoss = (floor) => {
@@ -35,10 +42,11 @@ const execute = async (client, message, args, commands, commandName) => {
     const user = db.getUser(userId, message.pushName || "Player");
     const action = (args[0] || "").toLowerCase();
     const floor = user.stats.dungeonFloor || 1;
+    const maxFloor = maxFloorFor(user);
 
     if (action === "fight") {
-      if (user.stats.dungeonFloor > MAX_FLOOR) {
-        return await client.sendMessage(sender, { text: `🏆 Kamu sudah menaklukkan dungeon sampai floor ${MAX_FLOOR}.` }, { quoted: message });
+      if (user.stats.dungeonFloor > maxFloor) {
+        return await client.sendMessage(sender, { text: `🏆 Kamu sudah menaklukkan dungeon sampai floor ${maxFloor}.` }, { quoted: message });
       }
 
       const now = Date.now();
@@ -68,7 +76,7 @@ const execute = async (client, message, args, commands, commandName) => {
       if (result.win) {
         const gold = 60 + floor * 20 + randInt(0, 20);
         const exp = 40 + floor * 12;
-        const nextFloor = Math.min(MAX_FLOOR + 1, floor + 1);
+        const nextFloor = Math.min(maxFloor + 1, floor + 1);
 
         db.addMoney(userId, gold);
         const expResult = db.addExp(userId, exp);
@@ -97,8 +105,8 @@ const execute = async (client, message, args, commands, commandName) => {
           db.addItem(userId, { name: "Bronze-key", emoji: "🔑", qty: 1 });
           loot = `${loot ? loot + ", " : ""}🔑 Bronze-key`;
         }
-        // hadiah milestone: premium key tiap 20 floor (20, 40, ... 200)
-        if (floor % 20 === 0) {
+        // hadiah milestone: premium key tiap 25 floor (25, 50, 75, ...)
+        if (floor % KEY_STEP === 0) {
           db.addItem(userId, { name: "premium-key", emoji: "🗝️", qty: 1 });
           loot = `${loot ? loot + ", " : ""}🗝️ premium-key`;
         }
@@ -121,16 +129,17 @@ const execute = async (client, message, args, commands, commandName) => {
       return await client.sendMessage(sender, { text }, { quoted: message });
     }
 
-    const shown = Math.min(floor, MAX_FLOOR);
+    const shown = Math.min(floor, maxFloor);
     const boss = floorBoss(shown);
-    const nextKey = Math.ceil(shown / 20) * 20;
+    const nextKey = Math.ceil(shown / KEY_STEP) * KEY_STEP;
     const keyLine =
-      nextKey <= MAX_FLOOR
+      nextKey <= maxFloor
         ? `🎁 Premium key berikutnya: floor ${nextKey}`
-        : `🎁 Semua premium key dungeon sudah diambil`;
-    const text = `🏰 *DUNGEON*\n\nFloor: ${shown}/${MAX_FLOOR}\nBest: ${user.stats.dungeonBest || 1}\n${keyLine}\n\n` +
+        : `🎁 Semua premium key di batas ini sudah diambil`;
+    const stats = db.getStats(user);
+    const text = `🏰 *DUNGEON*\n\nFloor: ${shown}/${maxFloor}\nBest: ${user.stats.dungeonBest || 1}\n${keyLine}\n\n` +
       `${boss.emoji} ${boss.name}\n❤️ ${boss.hp} HP\n⚔️ ${boss.atk} ATK | 🛡 ${boss.def} DEF\n\n` +
-      `HP kamu: ${user.hp}/${db.getStats(user).maxHp}\n${makeBar(user.hp, db.getStats(user).maxHp, 10)}\n\n` +
+      `HP kamu: ${user.hp}/${stats.maxHp}\n${makeBar(user.hp, stats.maxHp, 10)}\n\n` +
       `Mode: dungeon fight [attack|skill|defend]`;
 
     return await client.sendButtons(sender, {
@@ -157,5 +166,5 @@ module.exports = {
   description: "Dungeon bertingkat sampai floor 200 (premium key tiap 20 floor)",
   visible: true,
   execute: execute,
-  _internal: { floorBoss, MAX_FLOOR, FIGHT_ROUNDS }
+  _internal: { floorBoss, MAX_FLOOR, BASE_FLOOR, FLOOR_PER_PRESTIGE, KEY_STEP, FIGHT_ROUNDS, maxFloorFor }
 };

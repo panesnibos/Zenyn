@@ -35,7 +35,12 @@ const execute = async (client, message, args, commands, commandName) => {
         u.hp = 100;
         u.atk = 10;
         u.def = 5;
-        u.stats.dungeonBest = 1;
+        // dungeon ikut reset; rekor best tetap disimpan
+        u.stats.dungeonFloor = 1;
+        u.lastDungeon = 0;
+        u.lastRaid = 0;
+        u.raidLock = 0;
+        u.lastDeath = 0;
       });
 
       const newly = db.checkAchievements(userId);

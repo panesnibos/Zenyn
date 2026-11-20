@@ -4,6 +4,7 @@ const { getUserId, resolveTarget } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 
 const backButton = [{ id: "rpg", text: "⬅️ Kembali" }];
+const COOLDOWN = 30000;
 
 const execute = async (client, message, args, commands) => {
   const sender = message.key.remoteJid;
@@ -38,9 +39,18 @@ const execute = async (client, message, args, commands) => {
       return await client.sendMessage(sender, { text: `💸 Gold tidak cukup! Saldo kamu: ${user.money}` }, { quoted: message });
     }
 
+    const now = Date.now();
+    if (user.lastTransfer && now - user.lastTransfer < COOLDOWN) {
+      const sisa = Math.ceil((COOLDOWN - (now - user.lastTransfer)) / 1000);
+      return await client.sendMessage(sender, { text: `⏳ Tunggu ${sisa} detik sebelum transfer lagi.` }, { quoted: message });
+    }
+
     db.addMoney(userId, -amount);
     db.getUser(targetId, "Player");
     db.addMoney(targetId, amount);
+    db.updateUser(userId, (u) => {
+      u.lastTransfer = now;
+    });
 
     const sisa = db.getUser(userId).money;
 

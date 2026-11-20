@@ -62,30 +62,35 @@ const loadDungeon = (floor, items = []) => {
 
 const message = () => ({ key: { remoteJid: "chat@s.whatsapp.net" }, pushName: "Uji", message: { conversation: ".dungeon fight" } });
 
-test("dungeon: MAX_FLOOR 200 dan boss 1-50 tidak berubah", () => {
+test("dungeon: batas floor naik 50 tiap prestige, mentok 500", () => {
   const { cmd } = loadDungeon(1);
-  const { floorBoss, MAX_FLOOR } = cmd._internal;
-  assert.equal(MAX_FLOOR, 200);
+  const { floorBoss, maxFloorFor, MAX_FLOOR } = cmd._internal;
+  assert.equal(MAX_FLOOR, 500);
+  assert.equal(maxFloorFor({ prestige: 0 }), 200);
+  assert.equal(maxFloorFor({ prestige: 1 }), 250);
+  assert.equal(maxFloorFor({ prestige: 2 }), 300);
+  assert.equal(maxFloorFor({ prestige: 6 }), 500);
+  assert.equal(maxFloorFor({ prestige: 20 }), 500, "mentok di 500");
 
   const f50 = floorBoss(50);
   assert.equal(f50.hp, 50 + 50 * 30);
   assert.equal(f50.atk, 10 + 50 * 2);
   assert.equal(f50.def, 2 + 50);
 
-  const f200 = floorBoss(200);
-  assert.equal(f200.hp, 50 + 50 * 30 + 150 * 12);
-  assert.equal(f200.atk, 110, "atk tidak meledak di floor tinggi");
-  assert.equal(f200.def, 52 + 30);
+  const f500 = floorBoss(500);
+  assert.equal(f500.hp, 50 + 50 * 30 + 450 * 12);
+  assert.equal(f500.atk, 110, "atk tidak meledak di floor tinggi");
+  assert.equal(f500.def, 52 + 90);
 });
 
-test("dungeon: premium key tiap kelipatan 20, bukan 19/21", async () => {
-  for (const floor of [20, 40, 60, 100, 200]) {
+test("dungeon: premium key tiap kelipatan 25, bukan 24/26", async () => {
+  for (const floor of [25, 50, 75, 100, 200]) {
     const { cmd, client, added } = loadDungeon(floor);
     await cmd.execute(client, message(), ["fight"], {}, "dungeon");
     assert.ok(added.some((i) => i.name === "premium-key"), `floor ${floor} harus dapat premium key`);
   }
 
-  for (const floor of [19, 21, 39]) {
+  for (const floor of [19, 24, 26, 49]) {
     const { cmd, client, added } = loadDungeon(floor);
     await cmd.execute(client, message(), ["fight"], {}, "dungeon");
     assert.ok(!added.some((i) => i.name === "premium-key"), `floor ${floor} tidak boleh dapat key`);
@@ -107,7 +112,7 @@ test("dungeon: equipment naik ke Epic mulai floor 100", async () => {
   assert.ok(high.added.some((i) => i.name === "Phantom Cloak"), "floor 100 -> Epic");
 });
 
-test("dungeon: floor 200 bisa ditembus, lalu berhenti", async () => {
+test("dungeon: floor batas bisa ditembus, lalu berhenti", async () => {
   const done = loadDungeon(201);
   await done.cmd.execute(done.client, message(), ["fight"], {}, "dungeon");
   assert.match(done.sent.at(-1), /sudah menaklukkan dungeon sampai floor 200/);
@@ -121,7 +126,7 @@ test("dungeon: floor 200 bisa ditembus, lalu berhenti", async () => {
 test("dungeon: tampilan menyebut premium key berikutnya", async () => {
   const { cmd, client, sent } = loadDungeon(37);
   await cmd.execute(client, message(), [], {}, "dungeon");
-  assert.match(sent.at(-1), /Premium key berikutnya: floor 40/);
+  assert.match(sent.at(-1), /Premium key berikutnya: floor 50/);
 });
 
 test("combat: maxRounds khusus dungeon, default tetap 40", () => {

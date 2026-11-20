@@ -10,6 +10,7 @@ const { readJson, writeJson } = require("../../lib/rpgjson");
 
 const FILE = path.join(__dirname, "../../database/rpg/market.json");
 const TAX = 0.05;
+const EXPIRY_MS = 3 * 24 * 60 * 60 * 1000;
 const MAX_LISTINGS = 10;
 const MAX_ORDERS_SHOWN = 10;
 const MAX_ORDERS_PER_USER = 5;
@@ -26,8 +27,37 @@ const save = (data) => writeJson(FILE, data);
 const newId = (prefix) => prefix + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 4);
 const rp = (n) => Number(n || 0).toLocaleString("id-ID");
 
-const listingText = (l) => `${l.emoji} ${l.name} x${l.qty} — ${rp(l.price)}/item\n👤 ${l.sellerName} · ID ${l.id}`;
-const orderText = (o) => `${o.emoji} ${o.name} x${o.qty} — ${rp(o.price)}/item\n👤 ${o.buyerName} · ID ${o.id}`;
+const leftText = (expiresAt) => {
+  if (!expiresAt) return "-";
+  const m = Math.max(0, Math.ceil((expiresAt - Date.now()) / 60000));
+  return m >= 60 ? `${Math.floor(m / 60)}j ${m % 60}m` : `${m}m`;
+};
+
+// buang listing/order kedaluwarsa: barang balik ke penjual, escrow balik ke pembeli
+const prune = (data) => {
+  const now = Date.now();
+  let changed = false;
+
+  data.listings = data.listings.filter((l) => {
+    if (!l.expiresAt || l.expiresAt > now) return true;
+    db.addItem(l.sellerId, { name: l.name, emoji: l.emoji, qty: l.qty });
+    changed = true;
+    return false;
+  });
+
+  data.orders = data.orders.filter((o) => {
+    if (!o.expiresAt || o.expiresAt > now) return true;
+    db.getUser(o.buyerId, "Player");
+    db.addMoney(o.buyerId, o.escrow);
+    changed = true;
+    return false;
+  });
+
+  return changed;
+};
+
+const listingText = (l) => `${l.emoji} ${l.name} x${l.qty} — ${rp(l.price)}/item\n👤 ${l.sellerName} · ID ${l.id} · ⏳ sisa ${leftText(l.expiresAt)}`;
+const orderText = (o) => `${o.emoji} ${o.name} x${o.qty} — ${rp(o.price)}/item\n👤 ${o.buyerName} · ID ${o.id} · ⏳ sisa ${leftText(o.expiresAt)}`;
 
 const showListings = async (client, message, data, p) => {
   const listings = data.listings.slice(-MAX_LISTINGS).reverse();
@@ -122,6 +152,7 @@ const execute = async (client, message, args, commands, commandName) => {
     const user = db.getUser(userId, message.pushName || "Player");
     const action = (args[0] || "").toLowerCase();
     const data = load();
+    if (prune(data)) save(data);
 
     // ---------- pasang listing (jual barang) ----------
     if (action === "sell") {
@@ -154,7 +185,8 @@ const execute = async (client, message, args, commands, commandName) => {
         emoji: def.emoji || "📦",
         qty,
         price,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        expiresAt: Date.now() + EXPIRY_MS
       });
       save(data);
 
@@ -263,7 +295,8 @@ const execute = async (client, message, args, commands, commandName) => {
         qty,
         price,
         escrow: total,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        expiresAt: Date.now() + EXPIRY_MS
       });
       save(data);
 

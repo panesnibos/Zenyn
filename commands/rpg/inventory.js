@@ -1,6 +1,8 @@
 const logger = require("../../lib/logger");
 const { db } = require("../../lib/rpgdb");
 const { getUserId } = require("../../lib/rpgutil");
+const { findItemDef } = require("../../lib/rpgitems");
+const { enhKey } = require("../../lib/rpgcombat");
 
 const slotText = (user) => {
   const eq = user.equipment || {};
@@ -30,7 +32,9 @@ const execute = async (client, message, args, commands) => {
 
     let text = `🎒 *INVENTORY*\n\n`;
     user.inventory.forEach((item) => {
-      text += `${item.emoji || "📦"} *${item.name}* x${item.qty}\n`;
+      const def = findItemDef(item.name);
+      const level = def?.type === "equipment" ? Number(user.enh?.[enhKey(item.name)]) || 0 : 0;
+      text += `${item.emoji || "📦"} *${item.name}*${level ? ` +${level}` : ""} x${item.qty}\n`;
     });
 
     text += `\n────────────\n⚒️ *Equipment*\n${slotText(user)}`;
