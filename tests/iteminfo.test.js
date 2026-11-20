@@ -60,6 +60,13 @@ test("item: scroll baru menampilkan efek", () => {
   assert.match(text, /Moon Herb x3/);
 });
 
+test("item: shadow-key hanya dari premium crate dan tidak bisa dijual", () => {
+  const text = card("shadow-key");
+  assert.match(text, /Isi crate premium-key/);
+  assert.match(text, /Tidak bisa dijual/);
+  assert.match(text, /Gold 800–1\.800 \+ 3 item/);
+});
+
 test("item: nama salah ketik tetap ketemu, yang ngawur tidak", () => {
   assert.equal(resolveItem("smugler").item?.key, "smugglers-blade");
   const miss = resolveItem("alpukat");
