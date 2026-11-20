@@ -226,7 +226,7 @@ const usage = (p) =>
   [
     "📱 *NOMOR VIRTUAL (OTP)*",
     "",
-    "Beli nomor virtual untuk terima kode OTP. Bayar via QRIS otomatis.",
+    "Beli nomor virtual untuk terima kode OTP. Bayar dengan saldo Rp (QRIS dinonaktifkan).",
     "",
     `• ${p}nokos — daftar layanan`,
     `• ${p}nokos <nama layanan> — cari layanan`,
@@ -490,10 +490,13 @@ const cancelOrder = async (client, message, arg, uid, p) => {
     return client.sendMessage(message.key.remoteJid, { text: "Pesanan ini bukan milikmu." }, { quoted: message });
   }
   await nokos.cancel(o);
+  const refund = o.saldoCredit
+    ? `Dana ${rp(o.saldoCredit)} sudah kembali ke saldo Rp kamu (cek ${p}saldo).`
+    : "Hubungi owner untuk pengembalian dana.";
   await client.sendMessage(
     message.key.remoteJid,
     {
-      text: `Pesanan *${o.orderId}* dibatalkan.\n\nKarena pembayaran lewat QRIS, dana dikembalikan manual oleh owner (hubungi owner bila belum diterima).`
+      text: `Pesanan *${o.orderId}* dibatalkan.\n\n${refund}`
     },
     { quoted: message }
   );
@@ -641,7 +644,7 @@ module.exports = {
   name: "nokos",
   command: ["nokos", "nokoscek", "nokosbatal", "nokosriwayat"],
   category: "store",
-  description: "Beli nomor virtual OTP via QRIS (AutoOrder)",
+  description: "Beli nomor virtual OTP (bayar saldo Rp)",
   visible: true,
   execute
 };

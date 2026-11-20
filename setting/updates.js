@@ -21,7 +21,9 @@ module.exports = [
       "Transfer gold dibatasi cooldown 30 detik",
       "Market: listing & buy order kedaluwarsa 3 hari, barang dan gold dikembalikan otomatis",
       ".inventory menampilkan level upgrade (+N) pada equipment",
-      "Fitur baru .mulung: kantong sampah (bisa dijual) + 2 item acak, cooldown 4 detik (premium 2,5 detik)"
+      "Fitur baru .mulung: kantong sampah (bisa dijual) + 2 item acak, cooldown 4 detik (premium 2,5 detik)",
+      "Nokos sekarang hanya bisa dibeli pakai saldo Rp; pembayaran QRIS untuk nomor virtual dinonaktifkan",
+      "Batal nokos otomatis mengembalikan dana ke saldo Rp"
     ]
   },
   {

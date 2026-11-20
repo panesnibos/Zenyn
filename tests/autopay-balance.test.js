@@ -24,20 +24,36 @@ const loadMocked = (relative, mocks = {}) => {
   return mod.exports;
 };
 
-// autopay menahan cache saldo 60s di level modul -> tiap kasus pakai modul baru.
-const loadAutopay = ({ balance, onDeposit }) => {
-  const calls = { deposit: 0, alerts: [] };
+// nokos sekarang hanya bisa dibeli pakai saldo Rp (QRIS dinonaktifkan).
+const loadAutopay = ({ balance, wallet = 0 }) => {
+  const calls = { deposit: 0, orders: 0 };
   const ao = {
     enabled: () => true,
     balance: async () => ({ balance }),
     createDeposit: async (amount, ref) => {
       calls.deposit++;
-      if (onDeposit) return onDeposit(amount, ref);
       return { id: "dep1", amount, fee: 0, payment_amount: amount, qr_string: "QR", expires_at: 0 };
     },
     getDeposit: async () => ({ status: "pending" }),
     cancelDeposit: async () => ({}),
     qrBuffer: async () => Buffer.from("")
+  };
+  const saldo = {
+    get: () => wallet,
+    sub: (_uid, n) => {
+      if (wallet < n) throw Object.assign(new Error("Saldo tidak cukup."), { user: true });
+      wallet -= n;
+      return wallet;
+    },
+    add: (_uid, n) => { wallet += n; return wallet; },
+    rp: (n) => `Rp${n}`
+  };
+  const nokosMock = {
+    sellPrice: (n) => Number(n) || 0,
+    createOrder: async () => {
+      calls.orders++;
+      return { orderId: "OTP-1", serviceName: "WhatsApp", country: "X", tier: "E", phone: "+1000" };
+    }
   };
   const json = { readJson: () => ({}), writeJson: () => {} };
   const db = { getUser: () => ({}), setStatus: () => {} };
@@ -45,24 +61,37 @@ const loadAutopay = ({ balance, onDeposit }) => {
     "./autoorder": ao,
     "./rpgjson": json,
     "./rpgdb": { db },
-    "./saldo": { get: () => 0, sub: () => { throw new Error("Saldo tidak cukup."); }, add: () => 0, rp: (n) => `Rp${n}` }
+    "./saldo": saldo,
+    "./nokos": nokosMock
   });
   return { autopay, calls };
 };
 
 const nokosArgs = { uid: "628100000001", name: "Uji", chat: "chat@s.whatsapp.net", serviceId: "svc", serviceName: "WhatsApp", offerId: "offer", apiPrice: 2500 };
 
-test("createNokos: saldo kurang -> tolak sebelum tagihan QRIS dibuat", async () => {
-  const { autopay, calls } = loadAutopay({ balance: 0 });
-  assert.equal(typeof autopay.requireBalance, "function", "nokos.replace butuh requireBalance dari autopay");
-  await assert.rejects(() => autopay.createNokos(nokosArgs), /saldo habis/i);
-  assert.equal(calls.deposit, 0, "createDeposit tidak boleh dipanggil saat saldo habis");
+test("createNokos: saldo Rp kurang -> ditolak, tanpa QRIS", async () => {
+  const { autopay, calls } = loadAutopay({ balance: 50000, wallet: 1000 });
+  await assert.rejects(() => autopay.createNokos(nokosArgs), /saldo Rp/i);
+  assert.equal(calls.deposit, 0, "createDeposit tidak boleh dipanggil");
+  assert.equal(calls.orders, 0, "tidak ada order ke AutoOrder");
+  autopay.stop();
 });
 
-test("createNokos: saldo cukup -> tagihan dibuat", async () => {
-  const { autopay, calls } = loadAutopay({ balance: 50000 });
+test("createNokos: saldo AutoOrder habis -> ditolak sebelum potong saldo pembeli", async () => {
+  const { autopay, calls } = loadAutopay({ balance: 0, wallet: 50000 });
+  assert.equal(typeof autopay.requireBalance, "function", "nokos.replace butuh requireBalance dari autopay");
+  await assert.rejects(() => autopay.createNokos(nokosArgs), /saldo habis/i);
+  assert.equal(calls.deposit, 0);
+  autopay.stop();
+});
+
+test("createNokos: saldo cukup -> lunas dari saldo, tanpa deposit QRIS", async () => {
+  const { autopay, calls } = loadAutopay({ balance: 50000, wallet: 50000 });
   const { inv } = await autopay.createNokos(nokosArgs);
-  assert.equal(calls.deposit, 1);
-  assert.equal(inv.status, "pending");
+  assert.equal(calls.deposit, 0, "QRIS tidak boleh dibuat");
+  assert.equal(calls.orders, 1, "order langsung dikirim ke AutoOrder");
+  assert.equal(inv.method, "saldo");
+  assert.equal(inv.status, "done");
   assert.equal(inv.apiPrice, 2500);
+  autopay.stop();
 });
