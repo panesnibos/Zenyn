@@ -12,7 +12,9 @@ module.exports = [
       "Premium key bisa dibeli dengan IDR lewat .key — 5 key Rp1.000",
       "Kunci (bronze, premium, shadow) tidak bisa dijual atau diperdagangkan",
       "Black Market: total 10 unit per sesi, 6-9 baris, bahan rotasi + promo diskon",
-      "Player market dua arah: Barang Dijual dan Dicari Pembeli (gold pembeli ditahan)"
+      "Player market dua arah: Barang Dijual dan Dicari Pembeli (gold pembeli ditahan)",
+      "Dungeon diperpanjang sampai floor 200; tiap 20 floor dapat premium key (total 10 key)",
+      "Boss dungeon di atas floor 50 diskalakan ulang (tidak one-shot) dan equipment Epic mulai floor 100"
     ]
   },
   {

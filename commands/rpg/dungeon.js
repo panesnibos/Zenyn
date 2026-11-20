@@ -4,18 +4,24 @@ const { getUserId, makeBar } = require("../../lib/rpgutil");
 const { simulateFight, equipmentDrop, randInt } = require("../../lib/rpgcombat");
 const { cd } = require("../../lib/rpglimit");
 
-const MAX_FLOOR = 50;
+const MAX_FLOOR = 200;
 const COOLDOWN = 10000;
 const COOLDOWN_PREMIUM = 6000;
+const FIGHT_ROUNDS = 60;
 
-const floorBoss = (floor) => ({
-  name: `Dungeon Boss Lv.${floor}`,
-  emoji: floor % 10 === 0 ? "👑" : "👹",
-  level: floor,
-  hp: 50 + floor * 30,
-  atk: 10 + floor * 2,
-  def: 2 + floor
-});
+// floor 1-50 tetap seperti formula lama; di atasnya naik lewat HP/DEF saja
+const floorBoss = (floor) => {
+  const base = Math.min(floor, 50);
+  const over = Math.max(0, floor - 50);
+  return {
+    name: `Dungeon Boss Lv.${floor}`,
+    emoji: floor % 10 === 0 ? "👑" : "👹",
+    level: floor,
+    hp: 50 + base * 30 + over * 12,
+    atk: 10 + base * 2,
+    def: 2 + base + Math.round(over * 0.2)
+  };
+};
 
 const execute = async (client, message, args, commands, commandName) => {
   const sender = message.key.remoteJid;
@@ -31,7 +37,7 @@ const execute = async (client, message, args, commands, commandName) => {
     const floor = user.stats.dungeonFloor || 1;
 
     if (action === "fight") {
-      if (user.stats.dungeonFloor >= MAX_FLOOR) {
+      if (user.stats.dungeonFloor > MAX_FLOOR) {
         return await client.sendMessage(sender, { text: `🏆 Kamu sudah menaklukkan dungeon sampai floor ${MAX_FLOOR}.` }, { quoted: message });
       }
 
@@ -49,7 +55,7 @@ const execute = async (client, message, args, commands, commandName) => {
       const boss = floorBoss(floor);
       const stats = db.getStats(user);
       const mode = (args[1] || "attack").toLowerCase();
-      const result = simulateFight(stats, boss, mode, user.hp);
+      const result = simulateFight(stats, boss, mode, user.hp, FIGHT_ROUNDS);
 
       db.setHp(userId, result.hp);
       db.updateUser(userId, (u) => {
@@ -62,7 +68,7 @@ const execute = async (client, message, args, commands, commandName) => {
       if (result.win) {
         const gold = 60 + floor * 20 + randInt(0, 20);
         const exp = 40 + floor * 12;
-        const nextFloor = Math.min(MAX_FLOOR, floor + 1);
+        const nextFloor = Math.min(MAX_FLOOR + 1, floor + 1);
 
         db.addMoney(userId, gold);
         const expResult = db.addExp(userId, exp);
@@ -74,7 +80,8 @@ const execute = async (client, message, args, commands, commandName) => {
 
         let loot = null;
         if (floor % 10 === 0) {
-          const item = equipmentDrop(floor >= 30 ? "Rare" : "Uncommon");
+          const rarity = floor >= 100 ? "Epic" : floor >= 30 ? "Rare" : "Uncommon";
+          const item = equipmentDrop(rarity);
           if (item) {
             db.addItem(userId, { name: item.name, emoji: item.emoji, qty: 1 });
             loot = `${item.emoji} ${item.name}`;
@@ -89,6 +96,11 @@ const execute = async (client, message, args, commands, commandName) => {
         if (floor >= 5 && Math.random() < 0.2) {
           db.addItem(userId, { name: "Bronze-key", emoji: "🔑", qty: 1 });
           loot = `${loot ? loot + ", " : ""}🔑 Bronze-key`;
+        }
+        // hadiah milestone: premium key tiap 20 floor (20, 40, ... 200)
+        if (floor % 20 === 0) {
+          db.addItem(userId, { name: "premium-key", emoji: "🗝️", qty: 1 });
+          loot = `${loot ? loot + ", " : ""}🗝️ premium-key`;
         }
 
         const newly = db.checkAchievements(userId);
@@ -109,8 +121,14 @@ const execute = async (client, message, args, commands, commandName) => {
       return await client.sendMessage(sender, { text }, { quoted: message });
     }
 
-    const boss = floorBoss(floor);
-    const text = `🏰 *DUNGEON*\n\nFloor: ${floor}/${MAX_FLOOR}\nBest: ${user.stats.dungeonBest || 1}\n\n` +
+    const shown = Math.min(floor, MAX_FLOOR);
+    const boss = floorBoss(shown);
+    const nextKey = Math.ceil(shown / 20) * 20;
+    const keyLine =
+      nextKey <= MAX_FLOOR
+        ? `🎁 Premium key berikutnya: floor ${nextKey}`
+        : `🎁 Semua premium key dungeon sudah diambil`;
+    const text = `🏰 *DUNGEON*\n\nFloor: ${shown}/${MAX_FLOOR}\nBest: ${user.stats.dungeonBest || 1}\n${keyLine}\n\n` +
       `${boss.emoji} ${boss.name}\n❤️ ${boss.hp} HP\n⚔️ ${boss.atk} ATK | 🛡 ${boss.def} DEF\n\n` +
       `HP kamu: ${user.hp}/${db.getStats(user).maxHp}\n${makeBar(user.hp, db.getStats(user).maxHp, 10)}\n\n` +
       `Mode: dungeon fight [attack|skill|defend]`;
@@ -136,7 +154,8 @@ module.exports = {
   name: "dungeon",
   command: ["dungeon", "dg"],
   category: "rpg",
-  description: "Dungeon bertingkat dengan boss",
+  description: "Dungeon bertingkat sampai floor 200 (premium key tiap 20 floor)",
   visible: true,
-  execute: execute
+  execute: execute,
+  _internal: { floorBoss, MAX_FLOOR, FIGHT_ROUNDS }
 };
