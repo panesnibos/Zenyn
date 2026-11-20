@@ -3,10 +3,13 @@ const { db } = require("../../lib/rpgdb");
 const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const { findItemDef } = require("../../lib/rpgitems");
-const { equipmentStats } = require("../../lib/rpgcombat");
+const { equipmentStats, enhKey } = require("../../lib/rpgcombat");
 
 const SLOTS = ["weapon", "armor", "accessory"];
 const MAX_ENHANCE = 10;
+
+// level upgrade menempel ke item, bukan ke slot
+const levelOf = (user, name) => (name ? Number(user.enh?.[enhKey(name)]) || 0 : 0);
 
 const slotLabel = (slot) => ({ weapon: "⚔️ Weapon", armor: "🛡️ Armor", accessory: "💍 Accessory" }[slot] || slot);
 
@@ -44,7 +47,7 @@ const statLine = (user) => {
 const equipmentText = (user) => {
   const lines = SLOTS.map((slot) => {
     const name = user.equipment?.[slot];
-    const lv = user.enhance?.[slot] || 0;
+    const lv = levelOf(user, name);
     if (!name) return `${slotLabel(slot)}: -`;
     return `${slotLabel(slot)}: *${name}*${lv ? ` +${lv}` : ""} [${itemStatsText(name, lv)}]`;
   });
@@ -75,7 +78,6 @@ const execute = async (client, message, args, commands, commandName) => {
         for (const s of SLOTS) {
           if (slot === "all" || s === slot) {
             u.equipment[s] = null;
-            u.enhance[s] = 0;
           }
         }
       });
@@ -94,7 +96,7 @@ const execute = async (client, message, args, commands, commandName) => {
           const name = user.equipment?.[s];
           if (!name) return null;
 
-          const level = user.enhance?.[s] || 0;
+          const level = levelOf(user, name);
           if (level >= MAX_ENHANCE) return null;
 
           return {
@@ -123,7 +125,7 @@ const execute = async (client, message, args, commands, commandName) => {
         return await client.sendMessage(sender, { text: `❌ Tidak ada equipment di slot ${slot}.` }, { quoted: message });
       }
 
-      const level = user.enhance?.[slot] || 0;
+      const level = levelOf(user, name);
       if (level >= MAX_ENHANCE) {
         return await client.sendMessage(sender, { text: `❌ ${name} sudah +${MAX_ENHANCE} (max).\n📊 ${itemStatsText(name, level)}` }, { quoted: message });
       }
@@ -135,7 +137,7 @@ const execute = async (client, message, args, commands, commandName) => {
 
       db.updateUser(userId, (u) => {
         u.money -= cost;
-        u.enhance[slot] = level + 1;
+        u.enh[enhKey(name)] = level + 1;
       });
 
       const updated = db.getUser(userId);
@@ -186,13 +188,12 @@ const execute = async (client, message, args, commands, commandName) => {
     }
 
     db.updateUser(userId, (u) => {
-      if (u.equipment[def.slot] !== def.name) u.enhance[def.slot] = 0;
       u.equipment[def.slot] = def.name;
     });
 
     const updated = db.getUser(userId);
     return await client.sendMessage(sender, {
-      text: `✅ ${def.emoji || "⚒️"} *${def.name}* terpasang di ${slotLabel(def.slot)}.\n📊 ${itemStatsText(def.name, updated.enhance?.[def.slot] || 0)}\n\n${statLine(updated)}`
+      text: `✅ ${def.emoji || "⚒️"} *${def.name}* terpasang di ${slotLabel(def.slot)}.\n📊 ${itemStatsText(def.name, levelOf(updated, def.name))}\n\n${statLine(updated)}`
     }, { quoted: message });
 
   } catch (err) {

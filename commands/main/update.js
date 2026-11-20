@@ -30,7 +30,8 @@ const buildText = (mode) => {
   if (mode === "all") {
     const parts = sorted.map((entry, i) => block(entry, i === 0 ? "📋 UPDATE BOT" : "📋 UPDATE BOT (lanjutan)"));
     const text = parts.join("\n\n──────────\n\n");
-    return text.length > WA_LIMIT ? `${text.slice(0, WA_LIMIT - 40)}\n\n…(dipotong, pakai .update untuk hari ini)` : text;
+    const note = "\n\n…(dipotong, pakai .update untuk hari ini)";
+    return text.length > WA_LIMIT ? `${text.slice(0, WA_LIMIT - note.length)}${note}` : text;
   }
 
   const key = dayKey();

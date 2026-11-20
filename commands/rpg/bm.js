@@ -19,7 +19,7 @@ const showPrivate = (client, message, p, userId, now) => {
   const quota = bm.quotaOf(userId, now);
 
   const lines = [
-    "🕶️ *PASAR GELAP PRIBADI*",
+    "🕶️ *BLACK MARKET*",
     "",
     statusLine({ open, endsAt }, now),
     `🎟️ Kuota hari ini: ${quota.bought}/${quota.max} item`
@@ -44,7 +44,7 @@ const showMenu = (client, message, userId, now) => {
   const quota = bm.quotaOf(userId, now);
 
   const text = [
-    "🕶️ *PASAR GELAP*",
+    "🕶️ *BLACK MARKET*",
     "",
     statusLine(win, now),
     `🎟️ Kuota hari ini: ${quota.bought}/${quota.max} item`,
@@ -60,13 +60,13 @@ const showMenu = (client, message, userId, now) => {
         {
           name: "single_select",
           buttonParamsJson: JSON.stringify({
-            title: "Pasar Gelap",
+            title: "Black Market",
             sections: [
               {
                 title: "Pilih Pasar",
                 rows: [
-                  { id: "bm global", title: "🌍 Pasar Gelap Global", description: "Stok bareng semua pemain (belum dibuka)" },
-                  { id: "bm pribadi", title: "👤 Pasar Gelap Pribadi", description: "Jatah stok kamu sendiri" }
+                  { id: "bm super", title: "🌍 Super Black Market", description: "Stok bareng semua pemain (belum dibuka)" },
+                  { id: "bm pribadi", title: "🕶️ Black Market", description: "Jatah stok kamu sendiri" }
                 ]
               }
             ]
@@ -87,11 +87,11 @@ const execute = async (client, message, args) => {
   const action = String(args[0] || "").toLowerCase();
   const now = Date.now();
 
-  if (action === "global") {
+  if (action === "global" || action === "super") {
     return client.sendMessage(
       sender,
       {
-        text: `🌍 *PASAR GELAP GLOBAL*\n\nStok bareng semua pemain belum dibuka.\nSementara pakai *${p}bm pribadi*.`
+        text: `🌍 *SUPER BLACK MARKET*\n\nStok bareng semua pemain belum dibuka.\nSementara pakai *${p}bm pribadi* (Black Market).`
       },
       { quoted: message }
     );
@@ -121,7 +121,7 @@ const execute = async (client, message, args) => {
   if (action) {
     return client.sendMessage(
       sender,
-      { text: `🕶️ Format: *${p}bm*, *${p}bm pribadi*, *${p}bm global*, *${p}bm beli <nomor> [qty]*` },
+      { text: `🕶️ Format: *${p}bm*, *${p}bm pribadi*, *${p}bm super*, *${p}bm beli <nomor> [qty]*` },
       { quoted: message }
     );
   }
@@ -134,7 +134,7 @@ module.exports = {
   command: ["bm", "blackmarket"],
   category: "rpg",
   visible: true,
-  description: "Pasar gelap: kunci & bahan langka, buka 06:00-12:00 & 18:00-00:00 WIB",
-  subcommands: ["pribadi", "global", "beli <nomor> [qty]"],
+  description: "Black Market: kunci & bahan langka, buka 06:00-12:00 & 18:00-00:00 WIB",
+  subcommands: ["pribadi", "super", "beli <nomor> [qty]"],
   execute: guarded("bm", execute)
 };

@@ -2,6 +2,14 @@
 // Satu entri per tanggal (WIB). Teks dibuat polos supaya gampang disalin.
 module.exports = [
   {
+    date: "2026-11-20",
+    items: [
+      "Upgrade equipment kini menempel ke item: ganti senjata lalu balik lagi, level + tetap ada (termasuk setelah .unequip)",
+      "Pasar gelap berganti nama: Black Market (stok pribadi) dan Super Black Market (global, belum dibuka)",
+      "Super Black Market sudah muncul di menu .bm; stok bareng semua pemain menyusul"
+    ]
+  },
+  {
     date: "2026-11-19",
     items: [
       "Tombol/list di chat pribadi dikirim sebagai teks + perintah ketik (menu, nokos, premium, register, addbot, catur, tebak, dll) supaya tampil di PC maupun HP",
@@ -12,8 +20,8 @@ module.exports = [
       "Log lebih rapi: kesalahan input pemain dicatat WARN, bukan ERROR (mis. .use item yang tidak punya)",
       "Pasar gelap baru: buka 06:00-12:00 dan 18:00-00:00 WIB, stok per pemain per sesi, kuota 7 item/hari",
       "Pasar gelap punya dua pilihan: Global (belum dibuka) dan Pribadi",
-      "Kunci keluar dari toko: premium key hanya di Pasar Gelap (stok 2), bronze key dari daily, dungeon, dan pasar",
-      "Bahan baru Void Shard & Shadow Silk hanya di Pasar Gelap",
+      "Kunci keluar dari toko: premium key hanya di Black Market (stok 2), bronze key dari daily, dungeon, dan pasar",
+      "Bahan baru Void Shard & Shadow Silk hanya di Black Market",
       "Resep baru: Smugglers Blade, Nightshade Armor, Cutthroat Ring, Ancient Scroll (+500 EXP)",
       "Command baru .item: lihat stat, sumber, bahan craft, dan harga jual item"
     ]

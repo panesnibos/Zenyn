@@ -57,10 +57,14 @@ test("update: teks polos (bisa disalin) tanpa bold/kode, item pakai bullet", () 
   const text = cmd._internal.buildText("all");
   assert.match(text, /UPDATE BOT/);
   assert.match(text, /• Lelang item antar pemain/);
-  assert.match(text, /• \.antilink per grup/);
+  assert.ok(text.split("\n").filter((l) => l.startsWith("• ")).length >= 10, "item tetap pakai bullet");
   assert.doesNotMatch(text, /\*[^*\n]+\*/, "tidak boleh ada bold WhatsApp");
   assert.doesNotMatch(text, /```/, "tidak boleh ada code fence");
   assert.ok(text.length <= 3500, "muat satu pesan WA");
+
+  // riwayat lama boleh dipotong di teks, tapi datanya tetap tersimpan
+  const all = updates.flatMap((u) => u.items).join("\n");
+  assert.match(all, /\.antilink per grup/);
 });
 
 test("update: hari ini tampil kalau ada, kalau tidak pakai yang terakhir", async () => {

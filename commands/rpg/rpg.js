@@ -1,6 +1,7 @@
 const logger = require("../../lib/logger");
 const { db } = require("../../lib/rpgdb");
 const { getUserId, getRank, makeBar } = require("../../lib/rpgutil");
+const { enhKey } = require("../../lib/rpgcombat");
 
 const buildCaption = (user) => {
   const { rank, icon } = getRank(user.level);
@@ -8,11 +9,13 @@ const buildCaption = (user) => {
   const expBar = makeBar(user.exp, user.expNeeded);
   const hpBar = makeBar(user.hp, stats.maxHp);
   const eq = user.equipment || {};
+  const enh = user.enh || {};
+  const plus = (name) => (name && enh[enhKey(name)] ? ` +${enh[enhKey(name)]}` : "");
 
   const equipment = [
-    `⚔️ ${eq.weapon || "-"}${user.enhance?.weapon ? ` +${user.enhance.weapon}` : ""}`,
-    `🛡️ ${eq.armor || "-"}${user.enhance?.armor ? ` +${user.enhance.armor}` : ""}`,
-    `💍 ${eq.accessory || "-"}${user.enhance?.accessory ? ` +${user.enhance.accessory}` : ""}`
+    `⚔️ ${eq.weapon || "-"}${plus(eq.weapon)}`,
+    `🛡️ ${eq.armor || "-"}${plus(eq.armor)}`,
+    `💍 ${eq.accessory || "-"}${plus(eq.accessory)}`
   ].join("\n");
 
   return `🗡 *RPG PLAYER* 🗡

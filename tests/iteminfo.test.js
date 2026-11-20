@@ -30,8 +30,8 @@ test("item: gear craft menampilkan stat, bahan, dan sumber", () => {
 
 test("item: bahan khusus BM tampil sumber + dipakai untuk apa", () => {
   const text = card("void shard");
-  assert.match(text, /HANYA PASAR GELAP/i);
-  assert.match(text, /Pasar Gelap Pribadi/);
+  assert.match(text, /hanya Black Market/i);
+  assert.match(text, /Black Market —/);
   assert.match(text, /1\.500 gold/);
   assert.match(text, /stok 3\/sesi/);
   assert.match(text, /Dipakai untuk/);
@@ -42,7 +42,7 @@ test("item: bahan khusus BM tampil sumber + dipakai untuk apa", () => {
 
 test("item: premium key hanya di pasar, stok 2, dan bisa dibuka", () => {
   const text = card("premium-key");
-  assert.match(text, /Pasar Gelap Pribadi/);
+  assert.match(text, /Black Market/);
   assert.match(text, /5\.500 gold/);
   assert.match(text, /stok 2\/sesi/);
   assert.match(text, /\.open premium-key/);
