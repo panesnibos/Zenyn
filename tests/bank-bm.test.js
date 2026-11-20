@@ -102,37 +102,39 @@ test("blackmarket: buka 06:00-12:00 dan 18:00-00:00 WIB", () => {
   assert.equal(bm.windowOf(wib(0, 0)).endsAt, wib(6, 0), "tutup malam sampai 06:00");
 });
 
-test("blackmarket: stok deterministik per sesi, kunci & bahan selalu ada", () => {
+test("blackmarket: 10 unit per sesi, 6-9 baris, tiap baris 1-2", () => {
   const bm = loadMocked("lib/blackmarket.js", { "./rpgdb": { db: {} } });
-  const shop = JSON.parse(fs.readFileSync(path.join(root, "database/rpg/shop.json"), "utf8"));
 
-  const a = bm.buildStock(12345);
-  const b = bm.buildStock(12345);
-  assert.deepEqual(a, b, "slot sama -> stok sama");
-  assert.ok(a.length >= 6, "kunci + bahan + stok acak");
-
-  for (const entry of a) {
-    const sell = shop[entry.key]?.sell || 0;
-    if (sell) assert.ok(entry.price > sell, `harga ${entry.key} harus di atas harga jual ${sell}`);
-    assert.ok(entry.price > 0 && entry.stock >= 1);
+  for (const slot of [12345, 12346, 99999, 777777, 20261120]) {
+    const stock = bm.buildStock(slot);
+    assert.equal(stock.length >= 6 && stock.length <= 9, true, `baris ${stock.length}`);
+    assert.equal(stock.reduce((sum, e) => sum + e.stock, 0), 10, "total stok harus 10 unit");
+    for (const entry of stock) {
+      assert.ok(entry.stock === 1 || entry.stock === 2, `stok ${entry.key}=${entry.stock}`);
+      assert.ok(entry.price > 0, `harga ${entry.key}`);
+    }
+    const keys = stock.map((e) => e.key);
+    assert.equal(new Set(keys).size, keys.length, "tidak boleh ada duplikat");
+    for (const key of ["bronze-key", "premium-key", "void-shard", "shadow-silk"]) {
+      assert.ok(keys.includes(key), `${key} harus selalu ada`);
+    }
   }
-
-  const keys = a.map((e) => e.key);
-  for (const key of ["bronze-key", "premium-key", "void-shard", "shadow-silk"]) {
-    assert.ok(keys.includes(key), `${key} harus selalu ada`);
-  }
-  assert.equal(a.find((e) => e.key === "premium-key").stock, 2, "premium key stok 2");
 });
 
-test("blackmarket: equipment stok 1, bahan langka stok 1, sisanya acak 3-10", () => {
+test("blackmarket: deterministik per sesi dan promo tidak bisa dicuci untung", () => {
   const bm = loadMocked("lib/blackmarket.js", { "./rpgdb": { db: {} } });
-  const { stockFor } = bm._internal;
+  assert.deepEqual(bm.buildStock(12345), bm.buildStock(12345), "slot sama -> stok sama");
 
-  assert.equal(stockFor({ key: "wooden-sword" }, () => 0.9), 1, "equipment stok 1");
-  assert.equal(stockFor({ key: "premium-key", bmStock: 2 }, () => 0.9), 2, "bmStock menimpa");
-
-  const normal = stockFor({ key: "ore" }, () => 0.5);
-  assert.ok(normal >= 3 && normal <= 10, "stok acak 3-10");
+  let promos = 0;
+  for (let slot = 50000; slot < 50040; slot++) {
+    const stock = bm.buildStock(slot);
+    for (const entry of stock) {
+      if (!entry.promo) continue;
+      promos++;
+      assert.ok(entry.price >= bm._internal.floorPrice(entry.key), `promo ${entry.key} di bawah harga jual`);
+    }
+  }
+  assert.ok(promos > 0, "promo harus pernah muncul");
 });
 
 test("blackmarket: tutup -> beli ditolak", () => {
@@ -147,24 +149,32 @@ test("blackmarket: beli memotong gold, stok per pemain, kuota 7/hari", () => {
   const bm = loadMocked("lib/blackmarket.js", { "./rpgdb": { db } });
   const now = wib(8, 0);
   const stock = bm.current(now).stock;
-  db.ensure("u1").money = 100000;
+  db.ensure("u1").money = 1000000;
 
   const out = bm.buy("u1", 1, 1, now);
   assert.equal(out.entry.name, stock[0].name);
-  assert.equal(db.getUser("u1").money, 100000 - stock[0].price);
+  assert.equal(db.getUser("u1").money, 1000000 - stock[0].price);
   assert.equal(db.getUser("u1").inventory[0].name, stock[0].name);
 
-  assert.equal(stock[0].key, "bronze-key", "baris pertama kunci bronze");
-  bm.buy("u1", 1, 4, now);
+  // habiskan stok baris 1 untuk u1
+  const sisa = stock[0].stock - 1;
+  if (sisa > 0) bm.buy("u1", 1, sisa, now);
   assert.throws(() => bm.buy("u1", 1, 1, now), /habis/, "stok pribadi habis");
-  assert.equal(bm.quotaOf("u1", now).bought, 5);
+  assert.equal(bm.quotaOf("u1", now).bought, stock[0].stock);
 
-  db.ensure("u2").money = 100000;
-  assert.ok(bm.buy("u2", 1, 1, now), "pemain lain punya stok sendiri");
+  // pemain lain punya stok sendiri
+  db.ensure("u2").money = 1000000;
+  assert.ok(bm.buy("u2", 1, 1, now));
 
-  assert.throws(() => bm.buy("u1", 2, 3, now), /kuota/i, "sisa kuota 2");
-  bm.buy("u1", 2, 2, now);
-  assert.throws(() => bm.buy("u1", 3, 1, now), /Kuota.*habis/i, "kuota harian habis");
+  // kuota harian: isi sampai 7
+  let bought = bm.quotaOf("u1", now).bought;
+  for (let i = 1; i < stock.length && bought < 7; i++) {
+    const take = Math.min(stock[i].stock, 7 - bought);
+    bm.buy("u1", i + 1, take, now);
+    bought = bm.quotaOf("u1", now).bought;
+  }
+  assert.equal(bought, 7, "kuota terpakai penuh");
+  assert.throws(() => bm.buy("u1", 2, 1, now), /Kuota.*habis/i, "kuota harian habis");
 
   assert.throws(() => bm.buy("u2", 99, 1, now), /tidak ada/);
   db.ensure("u3").money = 0;
@@ -175,19 +185,22 @@ test("blackmarket: kuota reset saat ganti hari", () => {
   const db = makeDb();
   const bm = loadMocked("lib/blackmarket.js", { "./rpgdb": { db } });
   const now = wib(8, 0);
-  db.ensure("u1").money = 100000;
-  bm.buy("u1", 1, 5, now);
-  assert.equal(bm.quotaOf("u1", now).bought, 5);
+  db.ensure("u1").money = 1000000;
+  bm.buy("u1", 1, 1, now);
+  assert.equal(bm.quotaOf("u1", now).bought, 1);
 
   db.getUser("u1").bmDay = "2000-01-01";
   assert.equal(bm.quotaOf("u1", now).bought, 0, "hari baru -> kuota reset");
 });
 
-test("blackmarket: kunci keluar dari toko, bahan baru hanya di pasar", () => {
+test("blackmarket: kunci tidak dijual di toko dan tidak bisa dijual balik", () => {
   const shop = JSON.parse(fs.readFileSync(path.join(root, "database/rpg/shop.json"), "utf8"));
-  assert.equal(shop["bronze-key"].buyable, false, "bronze key tidak dijual di toko");
-  assert.equal(shop["premium-key"].buyable, false, "premium key tidak dijual di toko");
-  assert.equal(shop["premium-key"].bmStock, 2);
+  for (const key of ["bronze-key", "premium-key", "shadow-key"]) {
+    assert.equal(shop[key].buyable, false, `${key} tidak dijual di toko`);
+    assert.equal(shop[key].noSell, true, `${key} tidak bisa dijual`);
+    assert.equal(shop[key].sell, undefined, `${key} tanpa harga jual`);
+  }
+  assert.equal(shop["premium-key"].price, 7000);
   assert.equal(shop["void-shard"].bmOnly, true);
   assert.equal(shop["shadow-silk"].bmOnly, true);
 });

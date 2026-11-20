@@ -33,21 +33,25 @@ test("item: bahan khusus BM tampil sumber + dipakai untuk apa", () => {
   assert.match(text, /hanya Black Market/i);
   assert.match(text, /Black Market —/);
   assert.match(text, /1\.500 gold/);
-  assert.match(text, /stok 3\/sesi/);
+  assert.match(text, /stok 1–2\/sesi/);
   assert.match(text, /Dipakai untuk/);
   assert.match(text, /Smugglers Blade/);
   assert.match(text, /Cutthroat Ring/);
   assert.match(text, /Ancient Scroll/);
 });
 
-test("item: premium key hanya di pasar, stok 2, dan bisa dibuka", () => {
+test("item: premium key tampil isi crate, rentang qty, dan tidak bisa dijual", () => {
   const text = card("premium-key");
   assert.match(text, /Black Market/);
-  assert.match(text, /5\.500 gold/);
-  assert.match(text, /stok 2\/sesi/);
-  assert.match(text, /\.open premium-key/);
+  assert.match(text, /7\.000 gold/);
+  assert.match(text, /stok 1–2\/sesi/);
   assert.match(text, /Isi crate/);
-  assert.match(text, /Elixir x2/);
+  assert.match(text, /Gold 2\.000–5\.000 \+ 3 item/);
+  assert.match(text, /Elixir x2 38%/);
+  assert.match(text, /Bronze-key x1–4 12%/);
+  assert.match(text, /⭐ .*shadow-key x1–2 4%/i);
+  assert.match(text, /Tidak bisa dijual/);
+  assert.doesNotMatch(text, /maks 1/i, "keterangan cap tidak ditampilkan");
 });
 
 test("item: scroll baru menampilkan efek", () => {

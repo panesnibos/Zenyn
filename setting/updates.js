@@ -6,7 +6,13 @@ module.exports = [
     items: [
       "Upgrade equipment kini menempel ke item: ganti senjata lalu balik lagi, level + tetap ada (termasuk setelah .unequip)",
       "Pasar gelap berganti nama: Black Market (stok pribadi) dan Super Black Market (global, belum dibuka)",
-      "Super Black Market sudah muncul di menu .bm; stok bareng semua pemain menyusul"
+      "Super Black Market sudah muncul di menu .bm; stok bareng semua pemain menyusul",
+      "Crate dirombak: 1 buka = 1 gold + 3 item; item bertanda bintang maksimal 1 per buka",
+      "Crate baru Shadow Crate; shadow key hanya bisa didapat dari premium crate",
+      "Premium key bisa dibeli dengan IDR lewat .key — 5 key Rp1.000",
+      "Kunci (bronze, premium, shadow) tidak bisa dijual atau diperdagangkan",
+      "Black Market: total 10 unit per sesi, 6-9 baris, bahan rotasi + promo diskon",
+      "Player market dua arah: Barang Dijual dan Dicari Pembeli (gold pembeli ditahan)"
     ]
   },
   {

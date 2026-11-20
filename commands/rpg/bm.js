@@ -1,5 +1,5 @@
-// commands/rpg/bm.js — pasar gelap: menu global/pribadi, kuota harian.
-// Format: .bm | .bm pribadi | .bm global | .bm beli <nomor> [qty]
+// commands/rpg/bm.js — Black Market pribadi: 10 unit per sesi, kuota 7 item/hari.
+// Format: .bm | .bm pribadi | .bm super | .bm beli <nomor> [qty]
 const { db } = require("../../lib/rpgdb");
 const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
@@ -8,6 +8,7 @@ const bm = require("../../lib/blackmarket");
 const { short } = require("../../lib/num");
 
 const rp = (n) => short(n || 0);
+const GROUP_LABEL = { kunci: "🔑 Kunci", bahan: "🧱 Bahan gelap", rotasi: "🎲 Rotasi" };
 
 const statusLine = (win, now) =>
   win.open
@@ -28,26 +29,29 @@ const showPrivate = (client, message, p, userId, now) => {
   if (!open) {
     lines.push("", "Daftar stok muncul saat pasar buka.");
   } else {
+    let lastGroup = null;
     stock.forEach((s, i) => {
+      if (s.group !== lastGroup) {
+        lines.push("", GROUP_LABEL[s.group] || "📦 Stok");
+        lastGroup = s.group;
+      }
       const left = bm.remainingOf(s, quota.taken);
       const tag = left <= 0 ? "HABIS" : `sisa ${left}`;
-      lines.push(`${i + 1}. ${s.emoji || "📦"} ${s.name}${s.rare ? " ✨" : ""} — ${rp(s.price)} gold (${tag})`);
+      lines.push(`${i + 1}. ${s.promo ? "🔥 " : ""}${s.emoji || "📦"} ${s.name} — ${rp(s.price)} (${tag})`);
     });
-    lines.push("", `Beli: *${p}bm beli <nomor> [qty]*`);
+    lines.push("", `Stok sesi ini: ${bm.TOTAL_UNITS} unit`, `Beli: *${p}bm beli <nomor> [qty]*`);
   }
 
   return client.sendMessage(message.key.remoteJid, { text: lines.join("\n") }, { quoted: message });
 };
 
-const showMenu = (client, message, userId, now) => {
+const showMenu = (client, message, now) => {
   const win = bm.windowOf(now);
-  const quota = bm.quotaOf(userId, now);
 
   const text = [
     "🕶️ *BLACK MARKET*",
     "",
     statusLine(win, now),
-    `🎟️ Kuota hari ini: ${quota.bought}/${quota.max} item`,
     "",
     "Pilih pasar:"
   ].join("\n");
@@ -114,7 +118,7 @@ const execute = async (client, message, args) => {
     );
   }
 
-  if (action === "pribadi" || action === "saya" || action === "lokal") {
+  if (action === "pribadi" || action === "saya" || action === "lokal" || action === "market") {
     return showPrivate(client, message, p, userId, now);
   }
 
@@ -126,7 +130,7 @@ const execute = async (client, message, args) => {
     );
   }
 
-  return showMenu(client, message, userId, now);
+  return showMenu(client, message, now);
 };
 
 module.exports = {

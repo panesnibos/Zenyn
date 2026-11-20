@@ -205,6 +205,9 @@ const execute = async (client, message, args, commands, commandName) => {
       }
 
       const item = shopData[itemKey];
+      if (item && item.noSell) {
+        return await client.sendMessage(sender, { text: "🔒 Item ini tidak bisa dijual." }, { quoted: message });
+      }
       if (!item || !item.sell) {
         return await client.sendMessage(sender, { text: "❌ Item tidak bisa dijual!" }, { quoted: message });
       }

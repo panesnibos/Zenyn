@@ -1,20 +1,43 @@
 {
   "bronze-key": {
     "name": "bronze-key",
-    "emoji": "🗝️",
-    "rewards": [
-      { "type": "gold", "min": 500, "max": 1200 },
-      { "name": "Potion", "emoji": "🧪", "qty": 1, "chance": 0.8 },
-      { "name": "Bronze-key", "emoji": "🗝️", "qty": 1, "chance": 0.3 }
+    "emoji": "🔑",
+    "gold": { "min": 500, "max": 1200 },
+    "rolls": 3,
+    "items": [
+      { "name": "Potion", "emoji": "🧪", "qty": 1, "weight": 45 },
+      { "name": "Bait", "emoji": "🪱", "qty": 1, "weight": 25 },
+      { "name": "EXP Scroll", "emoji": "📜", "qty": 1, "weight": 15 },
+      { "name": "Herb", "emoji": "🌿", "qty": 1, "weight": 10 },
+      { "name": "Bronze-key", "emoji": "🔑", "qty": 1, "weight": 5, "cap": 1 }
     ]
   },
   "premium-key": {
     "name": "premium-key",
-    "emoji": "🔑",
-    "rewards": [
-      { "type": "gold", "min": 2000, "max": 5000 },
-      { "name": "Elixir", "emoji": "🧃", "qty": 2, "chance": 0.7 },
-      { "name": "Diamond", "emoji": "💎", "qty": 1, "chance": 0.2 }
+    "emoji": "🗝️",
+    "gold": { "min": 2000, "max": 5000 },
+    "rolls": 3,
+    "items": [
+      { "name": "Elixir", "emoji": "🧃", "qty": 2, "weight": 38 },
+      { "name": "Potion", "emoji": "🧪", "qty": 1, "weight": 36 },
+      { "name": "Diamond", "emoji": "💎", "qty": 1, "weight": 10 },
+      { "name": "Bronze-key", "emoji": "🔑", "qty": [1, 4], "weight": 12 },
+      { "name": "shadow-key", "emoji": "🗝️", "qty": [1, 2], "weight": 4, "cap": 1 }
+    ]
+  },
+  "shadow-key": {
+    "name": "shadow-key",
+    "emoji": "🕶️",
+    "gold": { "min": 800, "max": 1800 },
+    "rolls": 3,
+    "items": [
+      { "name": "Void Shard", "emoji": "💠", "qty": 1, "weight": 10 },
+      { "name": "Shadow Silk", "emoji": "🕸️", "qty": 1, "weight": 7 },
+      { "name": "Herb", "emoji": "🌿", "qty": 1, "weight": 30 },
+      { "name": "Wood", "emoji": "🪵", "qty": 1, "weight": 27 },
+      { "name": "Crystal", "emoji": "🔮", "qty": 1, "weight": 9 },
+      { "name": "Mithril Ore", "emoji": "⛏️", "qty": 1, "weight": 10 },
+      { "name": "Ancient Scroll", "emoji": "📜", "qty": 1, "weight": 7, "cap": 1 }
     ]
   }
 }

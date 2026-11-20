@@ -69,6 +69,7 @@ const execute = async (client, message, args) => {
     }
     const def = findItemDef(name);
     if (!def) throw new Error(`Item *${name}* tidak dikenal.`);
+    if (def.noSell) throw new Error("🔒 Item ini tidak bisa diperdagangkan.");
     const [qty, start, buyout] = tail;
     const lot = auction.create({
       sellerId: userId,

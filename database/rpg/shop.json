@@ -17,19 +17,23 @@
     "name": "Bronze-key",
     "emoji": "🔑",
     "price": 1600,
-    "sell": 169,
     "buyable": false,
     "bmOnly": true,
-    "bmStock": 5
+    "noSell": true
   },
   "premium-key": {
     "name": "premium-key",
     "emoji": "🗝️",
-    "price": 5500,
-    "sell": 1000,
+    "price": 7000,
     "buyable": false,
     "bmOnly": true,
-    "bmStock": 2
+    "noSell": true
+  },
+  "shadow-key": {
+    "name": "shadow-key",
+    "emoji": "🗝️",
+    "buyable": false,
+    "noSell": true
   },
   "diamond": {
     "name": "Diamond",
@@ -308,8 +312,7 @@
     "price": 1500,
     "sell": 600,
     "buyable": false,
-    "bmOnly": true,
-    "bmStock": 3
+    "bmOnly": true
   },
   "shadow-silk": {
     "name": "Shadow Silk",
@@ -317,8 +320,7 @@
     "price": 1800,
     "sell": 700,
     "buyable": false,
-    "bmOnly": true,
-    "bmStock": 3
+    "bmOnly": true
   },
   "smugglers-blade": {
     "name": "Smugglers Blade",

@@ -29,6 +29,12 @@ module.exports = {
     "7": { label: "Seminggu", price: 3000, days: 7 },
     "30": { label: "Sebulan", price: 10000, days: 30 }
   },
+  // premium key dijual dengan IDR; 5 key = Rp1.000, tanpa batas pembelian
+  keyPackages: {
+    "1": { label: "1 Premium Key", qty: 1, price: 200 },
+    "5": { label: "5 Premium Key", qty: 5, price: 1000 },
+    "10": { label: "10 Premium Key", qty: 10, price: 2000 }
+  },
   bmkgBase: "https://data.bmkg.go.id/DataMKG/TEWS/",
   quakeNotify: true,
   quakePollMs: 60000,
