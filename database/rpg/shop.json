@@ -345,5 +345,11 @@
     "emoji": "📜",
     "sell": 600,
     "buyable": false
+  },
+  "kantong-sampah": {
+    "name": "Kantong Sampah",
+    "emoji": "🗑️",
+    "sell": 8,
+    "buyable": false
   }
 }

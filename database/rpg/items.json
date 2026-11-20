@@ -372,5 +372,10 @@
     "name": "Ancient Scroll",
     "emoji": "📜",
     "type": "consumable"
+  },
+  "kantong-sampah": {
+    "name": "Kantong Sampah",
+    "emoji": "🗑️",
+    "type": "material"
   }
 }

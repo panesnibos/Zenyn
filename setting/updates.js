@@ -20,7 +20,8 @@ module.exports = [
       "Premium key dungeon diberikan tiap 25 floor (25, 50, 75, dst)",
       "Transfer gold dibatasi cooldown 30 detik",
       "Market: listing & buy order kedaluwarsa 3 hari, barang dan gold dikembalikan otomatis",
-      ".inventory menampilkan level upgrade (+N) pada equipment"
+      ".inventory menampilkan level upgrade (+N) pada equipment",
+      "Fitur baru .mulung: kantong sampah (bisa dijual) + 2 item acak, cooldown 4 detik (premium 2,5 detik)"
     ]
   },
   {
