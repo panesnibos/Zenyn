@@ -95,7 +95,7 @@ const ctaButton = () =>
       }
     : null;
 
-const buildButtons = (user, message) => {
+const buildButtons = (user, message, categories) => {
   const name = displayName(user, message);
   const sections = [
     {
@@ -107,7 +107,7 @@ const buildButtons = (user, message) => {
     },
     {
       title: "📂 Kategori",
-      rows: OTHER_ROWS.map((row) => ({
+      rows: OTHER_ROWS.filter((row) => commandNames(categories[CAT_ALIAS[row.id]]).length).map((row) => ({
         id: row.id,
         title: `${row.emoji} ${row.title}`,
         description: row.desc
@@ -140,7 +140,13 @@ const execute = async (client, message, args, commands, commandName) => {
       if (names.length) parts.push(box(`${CAT_TITLE[cat]} MENU`, names.map((n) => `${p}${n}`)));
     }
   } else if (only) {
-    parts.push(box(`${CAT_TITLE[only] || only.toUpperCase()} MENU`, commandNames(categories[only]).map((n) => `${p}${n}`)));
+    const names = commandNames(categories[only]);
+    parts.push(
+      box(
+        `${CAT_TITLE[only] || only.toUpperCase()} MENU`,
+        names.length ? names.map((n) => `${p}${n}`) : ["(belum ada command)"]
+      )
+    );
   } else {
     parts.push(box("MAIN MENU", commandNames(categories.main).map((n) => `${p}${n}`)));
     parts.push(box("MENU LAINNYA", OTHER_ROWS.map((row) => `${p}${row.id}`)));
@@ -151,7 +157,7 @@ const execute = async (client, message, args, commands, commandName) => {
   const footer = `Zenyn Bot • ${Object.keys(commands).length} command\n👥 wajib grup · 🔒 owner · 💎 premium`;
 
   // .allmenu: tombol cuma link (URL), tanpa list
-  const buttons = invoked === "allmenu" ? [ctaButton()].filter(Boolean) : buildButtons(user, message);
+  const buttons = invoked === "allmenu" ? [ctaButton()].filter(Boolean) : buildButtons(user, message, categories);
 
   try {
     if (!buttons.length) {

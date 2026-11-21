@@ -54,7 +54,7 @@ const categoriesMap = {
   info: [flat.rules]
 };
 
-const loadMenu = ({ user = { name: "Uji", registered: false, limit: 20, limitMax: 20 }, pushName = "WA Name" } = {}) => {
+const loadMenu = ({ user = { name: "Uji", registered: false, limit: 20, limitMax: 20 }, pushName = "WA Name", categories = categoriesMap } = {}) => {
   const sent = [];
   const payloads = [];
   const client = {
@@ -63,7 +63,7 @@ const loadMenu = ({ user = { name: "Uji", registered: false, limit: 20, limitMax
   };
   const mod = loadMocked("commands/main/menu.js", {
     "../../lib/logger": quiet,
-    "../../lib/commandLoader": { getCommandsByCategory: () => categoriesMap },
+    "../../lib/commandLoader": { getCommandsByCategory: () => categories },
     "../../lib/owner": { isOwner: () => false },
     "../../lib/prefix": { getPrefix: () => "!" },
     "../../lib/rpgdb": { db: { getUser: () => user } },
@@ -149,6 +149,19 @@ test("menu: nama sapaan pakai nama register kalau sudah terdaftar", async () => 
   await h.mod.execute(h.client, message(h.pushName), [], flat, "menu");
   const sections = JSON.parse(h.payloads.at(-1).interactiveButtons[0].buttonParamsJson).sections;
   assert.match(sections[0].title, /, Vaneska$/);
+});
+
+test("menu: kategori kosong tidak muncul di tombol", async () => {
+  const withoutInfo = { ...categoriesMap, info: [] };
+  const h = loadMenu({ categories: withoutInfo });
+  await h.mod.execute(h.client, message(h.pushName), [], flat, "menu");
+
+  const rows = JSON.parse(h.payloads.at(-1).interactiveButtons[0].buttonParamsJson).sections[1].rows;
+  assert.equal(rows.some((r) => r.id === "infomenu"), false, "info kosong disembunyikan");
+  assert.equal(rows.length, 6);
+
+  await h.mod.execute(h.client, message(h.pushName), [], flat, "infomenu");
+  assert.match(h.sent.at(-1), /\(belum ada command\)/);
 });
 
 test("config: harga sewa bot baru", () => {
