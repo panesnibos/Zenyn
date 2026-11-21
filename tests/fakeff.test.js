@@ -39,9 +39,9 @@ test("fakeff: 10 template lengkap dan semua file ada", () => {
   assert.equal(new Set(names).size, names.length, "tidak boleh duplikat");
 });
 
-test("fakeff: nama dibersihkan dan dibatasi 20 karakter", () => {
+test("fakeff: nama dibersihkan dan dibatasi 24 karakter", () => {
   assert.equal(ff.cleanName("  Panes   Kun  "), "Panes Kun");
-  assert.equal(ff.cleanName("a".repeat(40)).length, 20);
+  assert.equal(ff.cleanName("a".repeat(40)).length, 24);
   assert.equal(ff.cleanName("   "), "");
 });
 
@@ -68,6 +68,25 @@ test("fakeff: pilih template besar untuk pin, kecil untuk ff", async () => {
   const big = await ff.renderFakeFF("Panes", { template: "pin1.jpg" });
   assert.equal(big.width, 1080);
   assert.equal(big.height, 1920);
+});
+
+test("fakeff: nama pendek tetap pakai ukuran dasar", async () => {
+  const out = await ff.renderFakeFF("Panes", { template: "ff1.jpg" });
+  assert.equal(out.size, 35);
+  assert.equal(out.scale, 0.74);
+});
+
+test("fakeff: nama panjang otomatis mengecil dan tetap muat di slot", async () => {
+  const long = "M".repeat(24);
+  const out = await ff.renderFakeFF(long, { template: "ff1.jpg" });
+  assert.ok(out.size < 35 || out.scale < 0.74, `harus dikecilkan (size ${out.size}, scale ${out.scale})`);
+  assert.ok(out.textWidth <= 330, `lebar teks ${out.textWidth}px harus muat di slot 330px`);
+  assert.ok(out.textWidth > 150, "jangan terlalu kecil");
+});
+
+test("fakeff: nama 24 karakter tetap muat di template pin", async () => {
+  const out = await ff.renderFakeFF("PanesGamingIndonesia22", { template: "pin3.jpg" });
+  assert.ok(out.textWidth <= 380, `lebar ${out.textWidth}px muat di 380px`);
 });
 
 const quietTool = {
