@@ -8,7 +8,8 @@ module.exports = [
       "Menu kategori baru: .ownermenu, .toolmenu, .downloadermenu, .rpgmenu, .storemenu, .funmenu, .infomenu",
       ".allmenu menampilkan semua kategori sekaligus, tombolnya hanya link grup",
       "Tombol menu: sapaan sesuai jam WIB (nama register/nama WA) + Owner/CS + Ping + navigasi kategori",
-      "Harga sewa bot: Sebulan Rp3.000, Permanen Rp12.000"
+      "Harga sewa bot: Sebulan Rp3.000, Permanen Rp12.000",
+      "Fitur baru .fakeff (tools): kartu profil FF palsu dari 10 template lokal, tanpa API, biaya 1 limit"
     ]
   },
   {
