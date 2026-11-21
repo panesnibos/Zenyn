@@ -26,8 +26,8 @@ module.exports = {
     "30": { label: "Sebulan", price: 5000, days: 30 }
   },
   addbotPackages: {
-    "7": { label: "Seminggu", price: 3000, days: 7 },
-    "30": { label: "Sebulan", price: 10000, days: 30 }
+    "30": { label: "Sebulan", price: 3000, days: 30 },
+    "0": { label: "Permanen", price: 12000, days: 0 }
   },
   // premium key dijual dengan IDR; 5 key = Rp1.000, tanpa batas pembelian
   keyPackages: {

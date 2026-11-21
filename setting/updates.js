@@ -2,6 +2,16 @@
 // Satu entri per tanggal (WIB). Teks dibuat polos supaya gampang disalin.
 module.exports = [
   {
+    date: "2026-11-21",
+    items: [
+      "Menu dirombak: kotak identitas + kotak per kategori dengan garis, command pakai prefix",
+      "Menu kategori baru: .ownermenu, .toolmenu, .downloadermenu, .rpgmenu, .storemenu, .funmenu, .infomenu",
+      ".allmenu menampilkan semua kategori sekaligus, tombolnya hanya link grup",
+      "Tombol menu: sapaan sesuai jam WIB (nama register/nama WA) + Owner/CS + Ping + navigasi kategori",
+      "Harga sewa bot: Sebulan Rp3.000, Permanen Rp12.000"
+    ]
+  },
+  {
     date: "2026-11-20",
     items: [
       "Upgrade equipment kini menempel ke item: ganti senjata lalu balik lagi, level + tetap ada (termasuk setelah .unequip)",
