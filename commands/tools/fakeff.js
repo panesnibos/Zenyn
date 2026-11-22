@@ -4,12 +4,12 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
-const generate = require("x-fake-ff");
+const generate = require("../../lib/fflobby");
 const { getPrefix } = require("../../lib/prefix");
 const { guarded, reply, cooldown } = require("../../lib/featureutil");
 
 const MAX_NAME = 20;
-const MAX_LOBBY = 30;
+const MAX_LOBBY = 100;
 
 const clean = (value) =>
   String(value || "")
@@ -57,7 +57,7 @@ module.exports = {
   category: "tools",
   visible: true,
   limit: 1,
-  description: "Fake FF lobby card (x-fake-ff, 30 lobby)",
+  description: "Fake FF lobby card (100 lobby)",
   subcommands: ["<nama> [lobby]"],
   execute: guarded("fakeff", execute),
   _internal: { clean, MAX_LOBBY }

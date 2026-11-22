@@ -45,7 +45,7 @@ const fakeGenerate = (calls) => async ({ username, lobby, outputDir }) => {
 
 const loadCmd = (calls) =>
   loadMocked("commands/tools/fakeff.js", {
-    "x-fake-ff": fakeGenerate(calls),
+    "../../lib/fflobby": fakeGenerate(calls),
     "../../lib/prefix": { getPrefix: () => "!" },
     "../../lib/featureutil": quiet
   });
@@ -103,10 +103,12 @@ test("fakeff: folder sementara dibersihkan setelah kirim", async () => {
   assert.equal(after, before, "tidak ada folder sisa");
 });
 
-test("fakeff: paket x-fake-ff terpasang dan punya 30 lobby", () => {
-  const pkg = require("x-fake-ff");
-  assert.equal(typeof pkg, "function");
-  const lobbyDir = path.join(root, "node_modules/x-fake-ff/assets/lobby");
-  const files = fs.readdirSync(lobbyDir).filter((f) => f.endsWith(".jpg"));
-  assert.equal(files.length, 30);
+test("fakeff: vendor lib/fflobby punya 100 lobby", () => {
+  const lib = require("../lib/fflobby");
+  assert.equal(typeof lib, "function");
+  assert.equal(typeof lib.lobbyCount, "function");
+  assert.equal(lib.lobbyCount(), 100);
+  const numbers = lib.lobbyNumbers();
+  assert.equal(numbers[0], 1);
+  assert.equal(numbers[numbers.length - 1], 100);
 });

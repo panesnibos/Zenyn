@@ -4,7 +4,7 @@ module.exports = [
   {
     date: "2026-11-22",
     items: [
-      ".fakeff sekarang memakai generator lobby x-fake-ff: 30 varian lobby, isi nama + nomor lobby",
+      ".fakeff sekarang memakai generator lobby lokal di lib/fflobby: 100 varian lobby, isi nama + nomor lobby",
       ".fakeff lama (10 template profil lokal) diganti total; command .test2 dihapus",
       "Nama panjang otomatis mengecil agar muat, dan file sementara dibersihkan setelah kirim"
     ]
