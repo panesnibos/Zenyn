@@ -2,6 +2,14 @@
 // Satu entri per tanggal (WIB). Teks dibuat polos supaya gampang disalin.
 module.exports = [
   {
+    date: "2026-11-22",
+    items: [
+      ".fakeff sekarang memakai generator lobby x-fake-ff: 30 varian lobby, isi nama + nomor lobby",
+      ".fakeff lama (10 template profil lokal) diganti total; command .test2 dihapus",
+      "Nama panjang otomatis mengecil agar muat, dan file sementara dibersihkan setelah kirim"
+    ]
+  },
+  {
     date: "2026-11-21",
     items: [
       "Menu dirombak: kotak identitas + kotak per kategori dengan garis, command pakai prefix",

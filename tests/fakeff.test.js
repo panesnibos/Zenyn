@@ -1,4 +1,4 @@
-// .fakeff — kartu profil FF palsu dari template lokal (tanpa API).
+// .fakeff — fake FF lobby card via paket x-fake-ff.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -25,71 +25,7 @@ const loadMocked = (relative, mocks = {}) => {
   return mod.exports;
 };
 
-const ff = require("../lib/fakeff");
-const sharp = require("sharp");
-
-test("fakeff: 10 template lengkap dan semua file ada", () => {
-  assert.equal(ff.TEMPLATES.length, 10);
-  for (const tpl of ff.TEMPLATES) {
-    const file = path.join(root, "assets/fakeff", tpl.file);
-    assert.ok(fs.existsSync(file), `aset hilang: ${tpl.file}`);
-    assert.ok(tpl.cx > 0 && tpl.cy > 0 && tpl.size > 0 && tpl.cap > 0);
-  }
-  const names = ff.TEMPLATES.map((t) => t.file);
-  assert.equal(new Set(names).size, names.length, "tidak boleh duplikat");
-});
-
-test("fakeff: nama dibersihkan dan dibatasi 24 karakter", () => {
-  assert.equal(ff.cleanName("  Panes   Kun  "), "Panes Kun");
-  assert.equal(ff.cleanName("a".repeat(40)).length, 24);
-  assert.equal(ff.cleanName("   "), "");
-});
-
-test("fakeff: template konsisten untuk nama yang sama", () => {
-  const a = ff.pickTemplate("Panes").file;
-  const b = ff.pickTemplate("Panes").file;
-  assert.equal(a, b);
-  assert.ok(ff.TEMPLATES.some((t) => t.file === a), "template valid: " + a);
-});
-
-test("fakeff: render menghasilkan JPEG dengan ukuran template", async () => {
-  const out = await ff.renderFakeFF("Panes");
-  assert.ok(Buffer.isBuffer(out.buffer) && out.buffer.length > 20000);
-  const meta = await sharp(out.buffer).metadata();
-  assert.equal(meta.format, "jpeg");
-  assert.equal(meta.width, out.width);
-  assert.equal(meta.height, out.height);
-});
-
-test("fakeff: pilih template besar untuk pin, kecil untuk ff", async () => {
-  const small = await ff.renderFakeFF("Panes", { template: "ff1.jpg" });
-  assert.equal(small.width, 736);
-  assert.ok([1307, 1308].includes(small.height), "tinggi " + small.height);
-  const big = await ff.renderFakeFF("Panes", { template: "pin1.jpg" });
-  assert.equal(big.width, 1080);
-  assert.equal(big.height, 1920);
-});
-
-test("fakeff: nama pendek tetap pakai ukuran dasar", async () => {
-  const out = await ff.renderFakeFF("Panes", { template: "ff1.jpg" });
-  assert.equal(out.size, 35);
-  assert.equal(out.scale, 0.74);
-});
-
-test("fakeff: nama panjang otomatis mengecil dan tetap muat di slot", async () => {
-  const long = "M".repeat(24);
-  const out = await ff.renderFakeFF(long, { template: "ff1.jpg" });
-  assert.ok(out.size < 35 || out.scale < 0.74, `harus dikecilkan (size ${out.size}, scale ${out.scale})`);
-  assert.ok(out.textWidth <= 330, `lebar teks ${out.textWidth}px harus muat di slot 330px`);
-  assert.ok(out.textWidth > 150, "jangan terlalu kecil");
-});
-
-test("fakeff: nama 24 karakter tetap muat di template pin", async () => {
-  const out = await ff.renderFakeFF("PanesGamingIndonesia22", { template: "pin3.jpg" });
-  assert.ok(out.textWidth <= 380, `lebar ${out.textWidth}px muat di 380px`);
-});
-
-const quietTool = {
+const quiet = {
   guarded: (_name, fn) => fn,
   reply: async (client, message, text) => {
     await client.sendMessage(message.key.remoteJid, { text }, {});
@@ -98,30 +34,79 @@ const quietTool = {
   cooldown: () => {}
 };
 
-test("fakeff: command tanpa argumen tidak memotong limit", async () => {
-  const sent = [];
-  const client = { sendMessage: async (_j, p) => { sent.push(p); return {}; } };
-  const cmd = loadMocked("commands/tools/fakeff.js", {
+const fakeGenerate = (calls) => async ({ username, lobby, outputDir }) => {
+  calls.push({ username, lobby });
+  const folder = path.join(outputDir, "fake-ff");
+  fs.mkdirSync(folder, { recursive: true });
+  const file = path.join(folder, `${username}.jpg`);
+  fs.writeFileSync(file, Buffer.from("gambar-jpg"));
+  return { status: "success", code: 200, username, lobby: lobby || 7, result: file };
+};
+
+const loadCmd = (calls) =>
+  loadMocked("commands/tools/fakeff.js", {
+    "x-fake-ff": fakeGenerate(calls),
     "../../lib/prefix": { getPrefix: () => "!" },
-    "../../lib/featureutil": quietTool,
-    "../../lib/fakeff": { renderFakeFF: async () => ({ buffer: Buffer.from("x") }), MAX_NAME: 20 }
+    "../../lib/featureutil": quiet
   });
-  const result = await cmd.execute(client, { key: { remoteJid: "c@s.whatsapp.net" }, message: {} }, [], {}, "fakeff");
-  assert.equal(result, false);
-  assert.match(sent.at(-1).text, /FAKE FF/);
-  assert.equal(cmd.limit, 1, "biaya 1 limit");
-  assert.equal(cmd.category, "tools");
+
+const msg = () => ({ key: { remoteJid: "c@s.whatsapp.net" }, message: {} });
+
+test("fakeff: nama dibersihkan dan dibatasi 20 karakter", () => {
+  const cmd = loadCmd([]);
+  assert.equal(cmd._internal.clean("  Panes / Kun * "), "Panes Kun");
+  assert.equal(cmd._internal.clean("a".repeat(40)).length, 20);
+  assert.equal(cmd._internal.clean("///"), "");
 });
 
-test("fakeff: command dengan nama mengirim gambar", async () => {
+test("fakeff: tanpa nama hanya kirim format, limit tidak terpotong", async () => {
+  const sent = [];
+  const client = { sendMessage: async (_j, p) => { sent.push(p); return {}; } };
+  const cmd = loadCmd([]);
+  const res = await cmd.execute(client, msg(), [], {}, "fakeff");
+  assert.equal(res, false);
+  assert.match(sent.at(-1).text, /FAKE FF LOBBY/);
+  assert.equal(cmd.limit, 1);
+  assert.equal(cmd.category, "tools");
+  assert.equal(cmd.visible, true);
+});
+
+test("fakeff: nama saja -> lobby acak (null)", async () => {
+  const calls = [];
   const sent = [];
   const client = { sendMessage: async (_j, p) => { sent.push(p); return { key: { id: "s" } }; } };
-  const cmd = loadMocked("commands/tools/fakeff.js", {
-    "../../lib/prefix": { getPrefix: () => "!" },
-    "../../lib/featureutil": quietTool,
-    "../../lib/fakeff": { renderFakeFF: async (n) => ({ buffer: Buffer.from("img:" + n) }), MAX_NAME: 20 }
-  });
-  await cmd.execute(client, { key: { remoteJid: "c@s.whatsapp.net" }, message: {} }, ["Panes"], {}, "fakeff");
-  assert.ok(sent.at(-1).image);
-  assert.match(sent.at(-1).caption, /Fake FF — Panes/);
+  const cmd = loadCmd(calls);
+  await cmd.execute(client, msg(), ["Panes"], {}, "fakeff");
+  assert.deepEqual(calls[0], { username: "Panes", lobby: null });
+  assert.ok(sent.at(-1).image, "harus kirim gambar");
+  assert.match(sent.at(-1).caption, /Fake FF Lobby — Panes/);
+  assert.match(sent.at(-1).caption, /Lobby 7/);
+});
+
+test("fakeff: nama + lobby dipisah dengan benar", async () => {
+  const calls = [];
+  const client = { sendMessage: async () => ({ key: { id: "s" } }) };
+  const cmd = loadCmd(calls);
+  await cmd.execute(client, msg(), ["Panes", "Kun", "12"], {}, "fakeff");
+  assert.deepEqual(calls[0], { username: "Panes Kun", lobby: 12 });
+});
+
+test("fakeff: folder sementara dibersihkan setelah kirim", async () => {
+  const calls = [];
+  const os = require("os");
+  const client = { sendMessage: async () => ({ key: { id: "s" } }) };
+  const cmd = loadCmd(calls);
+  const base = path.join(os.tmpdir(), "zenyn-ff");
+  const before = fs.existsSync(base) ? fs.readdirSync(base).length : 0;
+  await cmd.execute(client, msg(), ["Panes"], {}, "fakeff");
+  const after = fs.existsSync(base) ? fs.readdirSync(base).length : 0;
+  assert.equal(after, before, "tidak ada folder sisa");
+});
+
+test("fakeff: paket x-fake-ff terpasang dan punya 30 lobby", () => {
+  const pkg = require("x-fake-ff");
+  assert.equal(typeof pkg, "function");
+  const lobbyDir = path.join(root, "node_modules/x-fake-ff/assets/lobby");
+  const files = fs.readdirSync(lobbyDir).filter((f) => f.endsWith(".jpg"));
+  assert.equal(files.length, 30);
 });
