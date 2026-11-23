@@ -2,6 +2,14 @@
 // Satu entri per tanggal (WIB). Teks dibuat polos supaya gampang disalin.
 module.exports = [
   {
+    date: "2026-11-23",
+    items: [
+      "Command owner .setpp: ganti foto profil bot (kirim foto dengan caption .setpp atau reply foto)",
+      ".setpp hapus untuk menghapus foto profil bot",
+      "Gambar otomatis diputar sesuai EXIF, di-crop 640×640, dan dikompres sebelum dipasang"
+    ]
+  },
+  {
     date: "2026-11-22",
     items: [
       ".fakeff sekarang memakai generator lobby lokal di lib/fflobby: 100 varian lobby, isi nama + nomor lobby",
