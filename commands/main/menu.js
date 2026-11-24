@@ -18,7 +18,8 @@ const CAT_ALIAS = {
   rpgmenu: "rpg",
   storemenu: "store",
   funmenu: "fun",
-  infomenu: "info"
+  infomenu: "info",
+  gatewaymenu: "gateway"
 };
 
 const CAT_TITLE = {
@@ -29,10 +30,11 @@ const CAT_TITLE = {
   rpg: "RPG",
   store: "STORE",
   fun: "FUN",
-  info: "INFO"
+  info: "INFO",
+  gateway: "GATEWAY"
 };
 
-const ORDER = ["main", "owner", "tools", "downloader", "rpg", "store", "fun", "info"];
+const ORDER = ["main", "owner", "tools", "downloader", "rpg", "store", "fun", "info", "gateway"];
 
 const OTHER_ROWS = [
   { id: "ownermenu", emoji: "🔒", title: "Owner Menu", desc: "Menampilkan owner menu" },
@@ -41,7 +43,8 @@ const OTHER_ROWS = [
   { id: "rpgmenu", emoji: "🎮", title: "RPG Menu", desc: "Menampilkan rpg menu" },
   { id: "storemenu", emoji: "🛒", title: "Store Menu", desc: "Menampilkan store menu" },
   { id: "funmenu", emoji: "🎲", title: "Fun Menu", desc: "Menampilkan fun menu" },
-  { id: "infomenu", emoji: "ℹ️", title: "Info Menu", desc: "Menampilkan info menu" }
+  { id: "infomenu", emoji: "ℹ️", title: "Info Menu", desc: "Menampilkan info menu" },
+  { id: "gatewaymenu", emoji: "🌐", title: "Gateway Menu", desc: "Menampilkan gateway menu" }
 ];
 
 const box = (title, lines) => {
@@ -187,7 +190,8 @@ module.exports = {
     "rpgmenu",
     "storemenu",
     "funmenu",
-    "infomenu"
+    "infomenu",
+    "gatewaymenu"
   ],
   category: "main",
   description: "Tampilkan menu & bantuan",

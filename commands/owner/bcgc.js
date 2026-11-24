@@ -78,8 +78,9 @@ const imageOf = async (message) => {
 
 const groupJids = async (client) => {
   const groups = await client.groupFetchAllParticipating();
+  const gatewayJid = await gateway.resolve(client).catch(() => null);
   return Object.keys(groups || {})
-    .filter((jid) => jid.endsWith("@g.us"))
+    .filter((jid) => jid.endsWith("@g.us") && jid !== gatewayJid)
     .map((jid) => ({ jid, subject: groups[jid]?.subject || "" }));
 };
 

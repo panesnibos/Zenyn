@@ -5,6 +5,7 @@
 const config = require("../../config");
 const logger = require("../../lib/logger");
 const addbot = require("../../lib/addbot");
+const gateway = require("../../lib/gateway");
 const { isOwner } = require("../../lib/owner");
 const { getPrefix } = require("../../lib/prefix");
 
@@ -87,10 +88,11 @@ const sisa = (rental) => (rental ? addbot.remaining(rental.until) : "tanpa masa 
 const listView = async (client, jid, message, page = 1, force = false) => {
   const map = await fetchGroups(client, force);
   const rentals = new Map(addbot.list().map((r) => [r.jid, r]));
+  const gatewayJid = await gateway.resolve(client).catch(() => null);
 
-  const groups = Object.values(map).sort(
-    (a, b) => a.name.localeCompare(b.name, "id") || a.jid.localeCompare(b.jid)
-  );
+  const groups = Object.values(map)
+    .filter((g) => g.jid !== gatewayJid)
+    .sort((a, b) => a.name.localeCompare(b.name, "id") || a.jid.localeCompare(b.jid));
 
   if (!groups.length) {
     return send(client, jid, message, "❌ Bot tidak berada di grup mana pun (atau gagal ambil daftar grup).");
