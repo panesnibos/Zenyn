@@ -89,10 +89,10 @@ test("soundsticker: durasi kebesaran -> ditolak", async () => {
   });
   const res = await cmd.execute({}, { key: { remoteJid: "g@g.us" }, message: {} }, []);
   assert.equal(res, false);
-  assert.match(sent[0].text, /5 detik/);
+  assert.match(sent[0].text, /10 detik/);
 });
 
-test("soundsticker: video valid -> kirim sticker + voice note", async () => {
+test("soundsticker: video valid -> kirim GIF bersuara", async () => {
   const sent = [];
   const sentMsgs = [];
   const client = {
@@ -101,31 +101,13 @@ test("soundsticker: video valid -> kirim sticker + voice note", async () => {
   const cmd = loadMocked("commands/tools/soundsticker.js", {
     "../../lib/featureutil": fe(sent),
     "../../lib/media": mediaOf({ buffer: Buffer.from("v"), type: "video", seconds: 3 }),
-    "../../lib/sticker": { videoToWebp: async (b) => Buffer.from(b), safeWithExif: async (b) => b },
-    "../../lib/voice": { audioToVoice: async () => Buffer.from("ogg") }
+    "../../lib/voice": { videoToGifPlayback: async () => Buffer.from("gif") }
   });
   const res = await cmd.execute(client, { key: { remoteJid: "g@g.us" }, message: {} }, []);
   assert.equal(res, true);
-  assert.equal(sentMsgs[0].sticker !== undefined, true, "kirim sticker");
-  assert.equal(sentMsgs[1].ptt, true, "kirim voice note");
-});
-
-test("soundsticker: video tanpa suara -> sticker tetap terkirim", async () => {
-  const sent = [];
-  const sentMsgs = [];
-  const client = {
-    sendMessage: async (_j, payload) => { sentMsgs.push(payload); return { key: { id: "s" } }; }
-  };
-  const cmd = loadMocked("commands/tools/soundsticker.js", {
-    "../../lib/featureutil": fe(sent),
-    "../../lib/media": mediaOf({ buffer: Buffer.from("v"), type: "video", seconds: 3 }),
-    "../../lib/sticker": { videoToWebp: async (b) => Buffer.from(b), safeWithExif: async (b) => b },
-    "../../lib/voice": { audioToVoice: async () => { throw new Error("no audio"); } }
-  });
-  const res = await cmd.execute(client, { key: { remoteJid: "g@g.us" }, message: {} }, []);
-  assert.equal(sentMsgs[0].sticker !== undefined, true);
-  assert.match(sent.at(-1).text, /tidak punya suara/);
-  assert.equal(res, false);
+  assert.equal(sentMsgs[0].video !== undefined, true, "kirim video");
+  assert.equal(sentMsgs[0].gifPlayback, true, "mode gifPlayback");
+  assert.equal(sentMsgs.length, 1, "satu bubble saja, bukan sticker+ptt");
 });
 
 // ---------- tss ----------
