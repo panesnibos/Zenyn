@@ -92,22 +92,24 @@ test("soundsticker: durasi kebesaran -> ditolak", async () => {
   assert.match(sent[0].text, /10 detik/);
 });
 
-test("soundsticker: video valid -> kirim GIF bersuara", async () => {
+test("soundsticker: video valid -> kirim stiker bersuara native", async () => {
   const sent = [];
-  const sentMsgs = [];
+  const soundCalls = [];
   const client = {
-    sendMessage: async (_j, payload) => { sentMsgs.push(payload); return { key: { id: "s" } }; }
+    relayMessage: async () => { return { key: { id: "s" } }; }
   };
   const cmd = loadMocked("commands/tools/soundsticker.js", {
     "../../lib/featureutil": fe(sent),
     "../../lib/media": mediaOf({ buffer: Buffer.from("v"), type: "video", seconds: 3 }),
-    "../../lib/voice": { videoToGifPlayback: async () => Buffer.from("gif") }
+    "../../lib/voice": { extractAudioOpus: async () => Buffer.from("audio") },
+    "../../lib/sticker": { videoToWebp: async () => Buffer.from("stk") },
+    "../../lib/soundsticker": { sendSoundSticker: async (_c, jid, o) => { soundCalls.push({ jid, o }); return true; } }
   });
   const res = await cmd.execute(client, { key: { remoteJid: "g@g.us" }, message: {} }, []);
   assert.equal(res, true);
-  assert.equal(sentMsgs[0].video !== undefined, true, "kirim video");
-  assert.equal(sentMsgs[0].gifPlayback, true, "mode gifPlayback");
-  assert.equal(sentMsgs.length, 1, "satu bubble saja, bukan sticker+ptt");
+  assert.equal(soundCalls.length, 1, "kirim satu stiker bersuara");
+  assert.equal(soundCalls[0].o.webp.toString(), "stk", "webp terpasang");
+  assert.equal(soundCalls[0].o.audio.toString(), "audio", "audio terpasang");
 });
 
 // ---------- tss ----------

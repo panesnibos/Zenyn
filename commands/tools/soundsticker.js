@@ -1,7 +1,9 @@
-// commands/tools/soundsticker.js — reply video -> GIF video bersuara (auto-play).
+// commands/tools/soundsticker.js — reply video -> stiker bersuara native (tap untuk putar).
 const { reply, guarded } = require("../../lib/featureutil");
 const { downloadMedia } = require("../../lib/media");
-const { videoToGifPlayback } = require("../../lib/voice");
+const { extractAudioOpus } = require("../../lib/voice");
+const { videoToWebp } = require("../../lib/sticker");
+const { sendSoundSticker } = require("../../lib/soundsticker");
 
 const MAX_SECONDS = 10;
 
@@ -14,14 +16,13 @@ const execute = async (client, message, args) => {
     return reply(client, message, `❌ Maksimal durasi video ${MAX_SECONDS} detik`);
   }
 
-  await reply(client, message, "⏳ Membuat GIF bersuara...");
+  await reply(client, message, "⏳ Membuat stiker bersuara...");
 
-  const video = await videoToGifPlayback(media.buffer);
-  await client.sendMessage(
-    message.key.remoteJid,
-    { video, gifPlayback: true, mimetype: "video/mp4" },
-    { quoted: message }
-  );
+  const [sticker, audio] = await Promise.all([
+    videoToWebp(media.buffer, { maxSeconds: MAX_SECONDS }),
+    extractAudioOpus(media.buffer, { maxSeconds: MAX_SECONDS })
+  ]);
+  await sendSoundSticker(client, message.key.remoteJid, { webp: sticker, audio, quoted: message });
   return true;
 };
 
@@ -31,7 +32,7 @@ module.exports = {
   category: "tools",
   visible: true,
   limit: 1,
-  description: "Reply video jadi GIF bergerak bersuara (maks 10 detik)",
+  description: "Reply video jadi stiker bersuara (tap untuk putar, maks 10 detik)",
   execute: guarded("soundsticker", execute),
   _internal: { execute, MAX_SECONDS }
 };
