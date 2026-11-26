@@ -10,6 +10,7 @@ const { getUserId } = require("../../lib/rpgutil");
 const { getPrefix } = require("../../lib/prefix");
 const { stamp } = require("../../lib/stamp");
 const { findMedia, download } = require("../../lib/mediautil");
+const gateway = require("../../lib/gateway");
 
 const cfg = () => config.broadcast || {};
 const delayMs = () => Math.max(0, Number(cfg().delayMs ?? 15000));
