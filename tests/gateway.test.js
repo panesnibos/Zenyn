@@ -66,28 +66,6 @@ test("gateway: resolve cari grup bernama Gateway", async () => {
   gw.forget();
 });
 
-test("gempa: diblokir di grup Gateway", async () => {
-  const sent = [];
-  const client = { sendMessage: async (_j, p) => { sent.push(p.text); return { key: { id: "s" } }; } };
-  let fetched = false;
-  const cmd = loadMocked("commands/tools/gempa.js", {
-    "../../lib/logger": quiet,
-    "../../lib/prefix": { getPrefix: () => "." },
-    "../../lib/gateway": { isGateway: async () => true },
-    "../../lib/quake": {
-      fetchLatest: async () => { fetched = true; return {}; },
-      fetchRecent: async () => [],
-      fetchFelt: async () => [],
-      formatMessage: () => "gempa",
-      joinButtons: () => []
-    }
-  });
-  const res = await cmd.execute(client, { key: { remoteJid: "120363222222222222@g.us" }, message: {} }, [], {}, "gempa");
-  assert.equal(res, false);
-  assert.equal(fetched, false, "tidak boleh ambil data BMKG");
-  assert.match(sent.at(-1), /tidak tersedia di grup ini/);
-});
-
 test("gempa: tetap jalan di grup lain", async () => {
   const sent = [];
   const client = {
@@ -97,7 +75,6 @@ test("gempa: tetap jalan di grup lain", async () => {
   const cmd = loadMocked("commands/tools/gempa.js", {
     "../../lib/logger": quiet,
     "../../lib/prefix": { getPrefix: () => "." },
-    "../../lib/gateway": { isGateway: async () => false },
     "../../lib/quake": {
       fetchLatest: async () => ({ mag: 5 }),
       fetchRecent: async () => [],

@@ -1,5 +1,4 @@
 const logger = require("../../lib/logger");
-const gateway = require("../../lib/gateway");
 const { getPrefix } = require("../../lib/prefix");
 const { fetchLatest, fetchRecent, fetchFelt, formatMessage, joinButtons } = require("../../lib/quake");
 
@@ -17,11 +16,6 @@ const execute = async (client, message, args) => {
   const sender = message.key.remoteJid;
   const p = getPrefix(message);
   const mode = String(args[0] || "").toLowerCase();
-
-  if (await gateway.isGateway(client, sender).catch(() => false)) {
-    await client.sendMessage(sender, { text: "❌ Fitur ini tidak tersedia di grup ini." }, { quoted: message });
-    return false;
-  }
 
   try {
     if (["help", "bantuan"].includes(mode)) {
