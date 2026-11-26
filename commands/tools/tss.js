@@ -1,22 +1,27 @@
 // commands/tools/tss.js — reply video + teks -> video diberi suara TTS.
 const { reply, guarded } = require("../../lib/featureutil");
 const { downloadMedia } = require("../../lib/media");
-const { muxVideoAudio } = require("../../lib/voice");
+const { muxVideoAudio, imageToVideoWithAudio } = require("../../lib/voice");
 const { speak, MAX_CHARS } = require("./tts")._internal;
 
 const execute = async (client, message, args) => {
   const text = args.join(" ").replace(/\s+/g, " ").trim();
   if (!text) {
-    return reply(client, message, `🔊 Format: *.tss <teks>* (reply video)\nContoh: .tss hai nopal`);
+    return reply(client, message, `🔊 Format: *.tss <teks>* (reply video/gambar)\nContoh: .tss hai nopal`);
   }
   if (text.length > MAX_CHARS) throw new Error(`Teks maksimal ${MAX_CHARS} karakter.`);
 
-  const media = await downloadMedia(client, message, { type: "video" });
-  if (!media) return reply(client, message, "❌ Reply video atau kirim video dengan caption *.tss*");
+  const media = await downloadMedia(client, message);
+  if (!media || !["video", "image"].includes(media.type)) {
+    return reply(client, message, "❌ Reply video/gambar atau kirim dengan caption *.tss*");
+  }
 
-  await reply(client, message, "⏳ Menambah suara ke video...");
+  await reply(client, message, "⏳ Menambah suara...");
   const mp3 = await speak(text);
-  const video = await muxVideoAudio(media.buffer, mp3);
+  const video =
+    media.type === "video"
+      ? await muxVideoAudio(media.buffer, mp3)
+      : await imageToVideoWithAudio(media.buffer, mp3);
 
   return client.sendMessage(
     message.key.remoteJid,

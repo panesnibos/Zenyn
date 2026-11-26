@@ -161,11 +161,33 @@ test("tss: video + teks -> kirim video dengan TTS", async () => {
   const cmd = loadMocked("commands/tools/tss.js", {
     "../../lib/featureutil": fe(sent),
     "../../lib/media": mediaOf({ buffer: Buffer.from("v"), type: "video", seconds: 5 }),
-    "../../lib/voice": { muxVideoAudio: async (_v, a) => Buffer.from("mux-" + a.length) },
+    "../../lib/voice": { muxVideoAudio: async (_v, a) => Buffer.from("mux-" + a.length), imageToVideoWithAudio: async () => {} },
     "./tts": { _internal: { speak: async () => Buffer.from("mp3"), MAX_CHARS: 300 } }
   });
   const res = await cmd.execute(client, { key: { remoteJid: "g@g.us" }, message: {} }, ["hai", "nopal"]);
   assert.equal(res !== undefined, true);
   assert.equal(sentMsgs[0].video !== undefined, true);
   assert.match(sentMsgs[0].caption, /hai nopal/);
+});
+
+test("tss: gambar + teks -> video statis berdurasi audio TTS", async () => {
+  const sent = [];
+  const sentMsgs = [];
+  let used = null;
+  const client = {
+    sendMessage: async (_j, payload) => { sentMsgs.push(payload); return { key: { id: "s" } }; }
+  };
+  const cmd = loadMocked("commands/tools/tss.js", {
+    "../../lib/featureutil": fe(sent),
+    "../../lib/media": mediaOf({ buffer: Buffer.from("img"), type: "image", seconds: 0 }),
+    "../../lib/voice": {
+      muxVideoAudio: async () => {},
+      imageToVideoWithAudio: async (img, audio) => { used = { img, audio }; return Buffer.from("imgvid"); }
+    },
+    "./tts": { _internal: { speak: async () => Buffer.from("mp3"), MAX_CHARS: 300 } }
+  });
+  const res = await cmd.execute(client, { key: { remoteJid: "g@g.us" }, message: {} }, ["hai"]);
+  assert.equal(res !== undefined, true);
+  assert.equal(used !== null, true, "pakai imageToVideoWithAudio");
+  assert.equal(sentMsgs[0].video !== undefined, true);
 });
