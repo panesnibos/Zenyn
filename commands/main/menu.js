@@ -19,7 +19,8 @@ const CAT_ALIAS = {
   storemenu: "store",
   funmenu: "fun",
   infomenu: "info",
-  gatewaymenu: "gateway"
+  gatewaymenu: "gateway",
+  bugmenu: "bug"
 };
 
 const CAT_TITLE = {
@@ -31,10 +32,11 @@ const CAT_TITLE = {
   store: "STORE",
   fun: "FUN",
   info: "INFO",
-  gateway: "GATEWAY"
+  gateway: "GATEWAY",
+  bug: "BUG"
 };
 
-const ORDER = ["main", "owner", "tools", "downloader", "rpg", "store", "fun", "info", "gateway"];
+const ORDER = ["main", "owner", "tools", "downloader", "rpg", "store", "fun", "info", "gateway", "bug"];
 
 const OTHER_ROWS = [
   { id: "ownermenu", emoji: "🔒", title: "Owner Menu", desc: "Menampilkan owner menu" },
@@ -44,7 +46,8 @@ const OTHER_ROWS = [
   { id: "storemenu", emoji: "🛒", title: "Store Menu", desc: "Menampilkan store menu" },
   { id: "funmenu", emoji: "🎲", title: "Fun Menu", desc: "Menampilkan fun menu" },
   { id: "infomenu", emoji: "ℹ️", title: "Info Menu", desc: "Menampilkan info menu" },
-  { id: "gatewaymenu", emoji: "🌐", title: "Gateway Menu", desc: "Menampilkan gateway menu" }
+  { id: "gatewaymenu", emoji: "🌐", title: "Gateway Menu", desc: "Menampilkan gateway menu" },
+  { id: "bugmenu", emoji: "🐞", title: "Bug Menu", desc: "Bug/eksperimen (owner)" }
 ];
 
 const box = (title, lines) => {
@@ -191,7 +194,8 @@ module.exports = {
     "storemenu",
     "funmenu",
     "infomenu",
-    "gatewaymenu"
+    "gatewaymenu",
+    "bugmenu"
   ],
   category: "main",
   description: "Tampilkan menu & bantuan",
