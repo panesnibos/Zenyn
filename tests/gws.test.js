@@ -73,7 +73,8 @@ const fixture = () => {
       clients: [{ client: "nesk", requests: 2, prompt_tokens: 80, completion_tokens: 10, errors: 1 }]
     }),
     errors: async () => ({ errors: [{ ts: "2026-11-23T11:54:04.785Z", client: "nesk", status: 502, attempts: 2 }] }),
-    publicUrl: () => "https://llm-gw.tailb717d3.ts.net/v1"
+    publicUrl: () => "https://llm-gw.tailb717d3.ts.net/v1",
+    publicUrls: () => ["https://llm-gw.tailb717d3.ts.net/v1", "https://api.vnsgw.my.id/v1"]
   };
   const cmd = loadMocked("commands/gateway/gws.js", {
     "../../lib/prefix": { getPrefix: () => "." },
@@ -125,12 +126,21 @@ test("gws logs: menampilkan error terakhir", async () => {
   assert.match(sent.at(-1), /501|502/);
 });
 
-test("gws api: link publik gateway", async () => {
+test("gws api: link publik gateway (2 endpoint)", async () => {
   const { cmd, client, sent } = fixture();
   await cmd.execute(client, msg(), ["api"], {}, "gws");
   const text = sent.at(-1);
-  assert.match(text, /https:\/\/llm-gw\.tailb7173\.ts\.net\/v1|https:\/\/llm-gw\.tailb717d3\.ts\.net\/v1/);
+  assert.match(text, /https:\/\/llm-gw\.tailb717d3\.ts\.net\/v1/);
+  assert.match(text, /https:\/\/api\.vnsgw\.my\.id\/v1/);
   assert.match(text, /Authorization: Bearer sk-gw-/);
+});
+
+test("gwapi: publicUrls default dua endpoint", () => {
+  assert.deepEqual(real.publicUrls(), [
+    "https://llm-gw.tailb717d3.ts.net/v1",
+    "https://api.vnsgw.my.id/v1"
+  ]);
+  assert.equal(real.publicUrl(), "https://llm-gw.tailb717d3.ts.net/v1");
 });
 
 test("gws: subcommand tidak dikenal -> panduan, tidak menagih", async () => {

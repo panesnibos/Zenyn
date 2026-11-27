@@ -29,7 +29,7 @@ const overview = async (p) => {
     `• ${p}gws model — daftar model (kumulatif)`,
     `• ${p}gws usage — pemakaian per key (reset 00:00 WIB)`,
     `• ${p}gws logs — error terakhir`,
-    `• ${p}gws api — link API gateway`
+    `• ${p}gws api — link API gateway (2 endpoint)`
   ].join("\n");
 };
 
@@ -78,15 +78,17 @@ const logsText = async () => {
   return ["🚨 *ERROR LOG GATEWAY* (20 terakhir)", "", ...rows].join("\n");
 };
 
-const apiText = () =>
-  [
+const apiText = () => {
+  const urls = gw.publicUrls();
+  return [
     "🔗 *API GATEWAY*",
     "",
-    `*Base URL*: ${gw.publicUrl()}`,
+    "*Base URL*:",
+    ...urls.map((u, i) => `${i + 1}. ${u}`),
     "",
     "*Contoh pakai*",
     "```",
-    `POST ${gw.publicUrl()}/chat/completions`,
+    `POST ${urls[0]}/chat/completions`,
     "Authorization: Bearer sk-gw-...",
     "Content-Type: application/json",
     '{"model":"deepseek-v4.1-flash","messages":[{"role":"user","content":"halo"}]}',
@@ -94,6 +96,7 @@ const apiText = () =>
     "",
     "Key didapat dari owner. Cek pemakaian dengan .gws usage."
   ].join("\n");
+};
 
 const sendText = async (client, message, text) => {
   const body = clip(text);
