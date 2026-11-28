@@ -89,7 +89,7 @@ test("soundsticker: durasi kebesaran -> ditolak", async () => {
   });
   const res = await cmd.execute({}, { key: { remoteJid: "g@g.us" }, message: {} }, []);
   assert.equal(res, false);
-  assert.match(sent[0].text, /10 detik/);
+  assert.match(sent[0].text, /5 detik/);
 });
 
 test("soundsticker: video valid -> kirim stiker bersuara native", async () => {
@@ -110,6 +110,41 @@ test("soundsticker: video valid -> kirim stiker bersuara native", async () => {
   assert.equal(soundCalls.length, 1, "kirim satu stiker bersuara");
   assert.equal(soundCalls[0].o.webp.toString(), "stk", "webp terpasang");
   assert.equal(soundCalls[0].o.audio.toString(), "audio", "audio terpasang");
+});
+
+test("soundsticker: ladder turun konfig sampai muat target ukuran", async () => {
+  const sent = [];
+  const soundCalls = [];
+  const client = { relayMessage: async () => ({ key: { id: "s" } }) };
+  const sizes = [150 * 1024, 90 * 1024]; // konfig pertama terlalu besar, kedua muat
+  const cmd = loadMocked("commands/tools/soundsticker.js", {
+    "../../lib/featureutil": fe(sent),
+    "../../lib/media": mediaOf({ buffer: Buffer.from("v"), type: "video", seconds: 3 }),
+    "../../lib/voice": { extractAudioOpus: async () => Buffer.from("audio") },
+    "../../lib/sticker": { videoToWebp: async () => Buffer.alloc(sizes.shift()) },
+    "../../lib/soundsticker": { sendSoundSticker: async (_c, jid, o) => { soundCalls.push(o); return true; } }
+  });
+  const res = await cmd.execute(client, { key: { remoteJid: "g@g.us" }, message: {} }, []);
+  assert.equal(res, true);
+  assert.equal(soundCalls.length, 1);
+  assert.ok(soundCalls[0].webp.length <= 100 * 1024, "webp terpilih sudah muat target");
+});
+
+test("soundsticker: semua konfig kelebihan -> ditolak tanpa kirim", async () => {
+  const sent = [];
+  const soundCalls = [];
+  const client = { relayMessage: async () => ({ key: { id: "s" } }) };
+  const cmd = loadMocked("commands/tools/soundsticker.js", {
+    "../../lib/featureutil": fe(sent),
+    "../../lib/media": mediaOf({ buffer: Buffer.from("v"), type: "video", seconds: 3 }),
+    "../../lib/voice": { extractAudioOpus: async () => Buffer.alloc(50 * 1024) },
+    "../../lib/sticker": { videoToWebp: async () => Buffer.alloc(90 * 1024) },
+    "../../lib/soundsticker": { sendSoundSticker: async (_c, jid, o) => { soundCalls.push(o); return true; } }
+  });
+  const res = await cmd.execute(client, { key: { remoteJid: "g@g.us" }, message: {} }, []);
+  assert.equal(res, false);
+  assert.equal(soundCalls.length, 0, "tidak mengirim kalau semua kebesaran");
+  assert.match(sent.at(-1).text, /terlalu besar/);
 });
 
 // ---------- tss ----------

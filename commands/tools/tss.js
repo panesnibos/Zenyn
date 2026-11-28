@@ -7,13 +7,15 @@ const { speak, MAX_CHARS } = require("./tts")._internal;
 const execute = async (client, message, args) => {
   const text = args.join(" ").replace(/\s+/g, " ").trim();
   if (!text) {
-    return reply(client, message, `🔊 Format: *.tss <teks>* (reply video/gambar)\nContoh: .tss hai nopal`);
+    await reply(client, message, `🔊 Format: *.tss <teks>* (reply video/gambar)\nContoh: .tss hai nopal`);
+    return false;
   }
   if (text.length > MAX_CHARS) throw new Error(`Teks maksimal ${MAX_CHARS} karakter.`);
 
   const media = await downloadMedia(client, message);
   if (!media || !["video", "image"].includes(media.type)) {
-    return reply(client, message, "❌ Reply video/gambar atau kirim dengan caption *.tss*");
+    await reply(client, message, "❌ Reply video/gambar atau kirim dengan caption *.tss*");
+    return false;
   }
 
   await reply(client, message, "⏳ Menambah suara...");
