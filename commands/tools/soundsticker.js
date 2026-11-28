@@ -29,10 +29,11 @@ const execute = async (client, message, args) => {
 
   await reply(client, message, "⏳ Membuat stiker bersuara...");
 
+  const wm = args.join(" ").trim();
   const audio = await extractAudioOpus(media.buffer, { maxSeconds: MAX_SECONDS, bitrate: AUDIO_BITRATE });
   let webp = null;
   for (const cfg of LADDER) {
-    const w = await videoToWebp(media.buffer, { maxSeconds: MAX_SECONDS, ...cfg });
+    const w = await videoToWebp(media.buffer, { maxSeconds: MAX_SECONDS, wm, ...cfg });
     if (w.length + audio.length <= TARGET_BYTES) { webp = w; break; }
   }
   if (!webp) {
