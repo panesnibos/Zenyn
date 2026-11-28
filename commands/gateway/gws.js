@@ -67,11 +67,19 @@ const usageText = async () => {
   ].join("\n");
 };
 
+const WIB = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+});
+const wibTime = (ts) => {
+  const d = new Date(ts);
+  return Number.isNaN(d.getTime()) ? String(ts || "").slice(11, 19) : WIB.format(d);
+};
+
 const logsText = async () => {
   const { errors } = await gw.errors(20);
   if (!errors || !errors.length) return "✅ Tidak ada error di log gateway.";
   const rows = errors.map((e) => {
-    const time = String(e.ts || "").slice(11, 19);
+    const time = wibTime(e.ts);
     const status = e.status || e.error || "?";
     return `• ${time} · ${e.client || "?"} · ${status}${Number(e.attempts) > 1 ? ` · ${e.attempts}×` : ""}`;
   });
@@ -141,5 +149,5 @@ module.exports = {
   description: "Info gateway LLM: model, usage, logs, link API",
   subcommands: ["model", "usage", "logs", "api"],
   execute: guarded("gws", execute),
-  _internal: { overview, modelText, usageText, logsText, apiText, dur }
+  _internal: { overview, modelText, usageText, logsText, apiText, dur, wibTime }
 };

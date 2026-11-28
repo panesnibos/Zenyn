@@ -126,6 +126,14 @@ test("gws logs: menampilkan error terakhir", async () => {
   assert.match(sent.at(-1), /501|502/);
 });
 
+test("gws logs: jam dikonversi ke WIB (UTC+7)", async () => {
+  const { cmd } = fixture();
+  const ts = "2026-11-28T08:16:04.785Z"; // UTC 08:16 = WIB 15:16
+  assert.equal(cmd._internal.wibTime(ts), "15:16:04");
+  // format salah -> fallback ke potongan mentah, tidak crash
+  assert.equal(cmd._internal.wibTime("garbage"), "garbage".slice(11, 19));
+});
+
 test("gws api: link publik gateway (2 endpoint)", async () => {
   const { cmd, client, sent } = fixture();
   await cmd.execute(client, msg(), ["api"], {}, "gws");
