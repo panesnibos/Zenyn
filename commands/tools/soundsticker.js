@@ -2,7 +2,7 @@
 const { reply, guarded } = require("../../lib/featureutil");
 const { downloadMedia } = require("../../lib/media");
 const { extractAudioOpus } = require("../../lib/voice");
-const { videoToWebp } = require("../../lib/sticker");
+const { videoToWebp, safeWithExif } = require("../../lib/sticker");
 const { sendSoundSticker } = require("../../lib/soundsticker");
 
 const MAX_SECONDS = 5;
@@ -29,11 +29,10 @@ const execute = async (client, message, args) => {
 
   await reply(client, message, "⏳ Membuat stiker bersuara...");
 
-  const wm = args.join(" ").trim();
   const audio = await extractAudioOpus(media.buffer, { maxSeconds: MAX_SECONDS, bitrate: AUDIO_BITRATE });
   let webp = null;
   for (const cfg of LADDER) {
-    const w = await videoToWebp(media.buffer, { maxSeconds: MAX_SECONDS, wm, ...cfg });
+    const w = await safeWithExif(await videoToWebp(media.buffer, { maxSeconds: MAX_SECONDS, ...cfg }));
     if (w.length + audio.length <= TARGET_BYTES) { webp = w; break; }
   }
   if (!webp) {

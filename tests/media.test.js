@@ -102,7 +102,7 @@ test("soundsticker: video valid -> kirim stiker bersuara native", async () => {
     "../../lib/featureutil": fe(sent),
     "../../lib/media": mediaOf({ buffer: Buffer.from("v"), type: "video", seconds: 3 }),
     "../../lib/voice": { extractAudioOpus: async () => Buffer.from("audio") },
-    "../../lib/sticker": { videoToWebp: async () => Buffer.from("stk") },
+    "../../lib/sticker": { videoToWebp: async () => Buffer.from("stk"), safeWithExif: async (b) => b },
     "../../lib/soundsticker": { sendSoundSticker: async (_c, jid, o) => { soundCalls.push({ jid, o }); return true; } }
   });
   const res = await cmd.execute(client, { key: { remoteJid: "g@g.us" }, message: {} }, []);
@@ -121,7 +121,7 @@ test("soundsticker: ladder turun konfig sampai muat target ukuran", async () => 
     "../../lib/featureutil": fe(sent),
     "../../lib/media": mediaOf({ buffer: Buffer.from("v"), type: "video", seconds: 3 }),
     "../../lib/voice": { extractAudioOpus: async () => Buffer.from("audio") },
-    "../../lib/sticker": { videoToWebp: async () => Buffer.alloc(sizes.shift()) },
+    "../../lib/sticker": { videoToWebp: async () => Buffer.alloc(sizes.shift()), safeWithExif: async (b) => b },
     "../../lib/soundsticker": { sendSoundSticker: async (_c, jid, o) => { soundCalls.push(o); return true; } }
   });
   const res = await cmd.execute(client, { key: { remoteJid: "g@g.us" }, message: {} }, []);
@@ -138,7 +138,7 @@ test("soundsticker: semua konfig kelebihan -> ditolak tanpa kirim", async () => 
     "../../lib/featureutil": fe(sent),
     "../../lib/media": mediaOf({ buffer: Buffer.from("v"), type: "video", seconds: 3 }),
     "../../lib/voice": { extractAudioOpus: async () => Buffer.alloc(50 * 1024) },
-    "../../lib/sticker": { videoToWebp: async () => Buffer.alloc(90 * 1024) },
+    "../../lib/sticker": { videoToWebp: async () => Buffer.alloc(90 * 1024), safeWithExif: async (b) => b },
     "../../lib/soundsticker": { sendSoundSticker: async (_c, jid, o) => { soundCalls.push(o); return true; } }
   });
   const res = await cmd.execute(client, { key: { remoteJid: "g@g.us" }, message: {} }, []);
